@@ -7,6 +7,7 @@ def k8s_api_instance():
     # Create an instance of the Kubernetes API client
     return client.AppsV1Api()
 
+
 def list_pods_in_deployment(namespace, deployment_name, debug=False):
     api_instance = k8s_api_instance()
 
@@ -36,7 +37,9 @@ def list_pods_in_deployment(namespace, deployment_name, debug=False):
     return None
 
 
-def list_resource_requests_in_deployments(namespace, resource_name='nvidia.com/gpu', debug=False):
+def list_resource_requests_in_deployments(namespace,
+                                          resource_name='nvidia.com/gpu',
+                                          debug=False):
     api_instance = k8s_api_instance()
 
     # prepare the list of pods
@@ -46,7 +49,9 @@ def list_resource_requests_in_deployments(namespace, resource_name='nvidia.com/g
     # Iterate over the deployments
     for deployment in deployments.items:
         # Get the pods in the deployment
-        pods = list_pods_in_deployment(namespace, deployment.metadata.name, debug)
+        pods = list_pods_in_deployment(namespace, deployment.metadata.name,
+                                       debug)
+
         # Iterate over the pods
         for pod in pods.items:
             # Get the containers in the pod
@@ -59,7 +64,9 @@ def list_resource_requests_in_deployments(namespace, resource_name='nvidia.com/g
                 if resource_name in resources:
                     if debug:
                         # Print the resource request
-                        print(f"Resource request for container {container.name} in deployment {deployment.metadata.name}: {resources[resource_name]}")
+                        print(
+                            f"Resource request for container {container.name} in deployment {deployment.metadata.name}: {resources[resource_name]}"
+                        )
                     pods.append(pod)
 
     return pods
