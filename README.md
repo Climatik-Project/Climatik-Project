@@ -66,16 +66,17 @@ spec:
 - Kepler will expose the power consumption metrics to power capping operator via Prometheus.
 
 ## 7. Integration
+### 7.1 KServe Integration
 This section demonstrates the integration of the power capping operator with KServe, a standardized Serverless ML Inference Platform on Kubernetes. KServe creates deployments for serving LLM inference and associated KEDA ScaleObjects. The power capping operator then updates the CRD to manage the power capping configuration.
 
-### 7.1 Integration Flow
+### 7.1.1 Integration Flow
 1. KServe creates a deployment for serving LLM inference.
 2. KServe creates an associated KEDA ScaleObject for the deployment.
 3. The power capping operator watches for changes in the KServe deployments and ScaleObjects.
 4. The power capping operator updates the PowerCappingConfig CRD with the ScaleObject references.
 5. The power capping operator monitors the power consumption metrics and adjusts the scaling configuration for the new ScaleObject if necessary.
 
-### 7.2 Integration Diagram
+### 7.1.2 Integration Diagram
 ```mermaid
 graph TD
 A[KServe] -->|Creates| B(LLM Inference Deployment)
@@ -87,7 +88,7 @@ D -->|Monitors| F(Power Consumption Metrics)
 D -->|Adjusts| C
 ```
 
-### 8.3 KServe Integration Steps
+### 7.1.3 KServe Integration Steps
 1. KServe creates a deployment for serving LLM inference using the InferenceService resource.
    ```yaml
    apiVersion: serving.kserve.io/v1beta1
@@ -146,6 +147,94 @@ D -->|Adjusts| C
 5. The power capping operator monitors the power consumption metrics and adjusts the scaling configuration if necessary.
 
 This integration allows the power capping operator to seamlessly work with KServe deployments and manage their power capping configuration using KEDA ScaleObjects.
+
+### 7.2 Integration with vLLM
+
+The power capping operator can also be integrated with vLLM, a framework for serving large language models. vLLM provides an memory efficient and scalable solution for deploying and serving LLMs.
+
+### 7.2.1 vLLM Deployment
+
+vLLM creates deployments for serving LLM inference. Each vLLM deployment is associated with a KEDA ScaleObject that defines the scaling behavior based on the incoming workload.
+
+Here's an example of a vLLM deployment:
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+```
+
+### 7.2.2 KEDA ScaleObject for vLLM
+
+The KEDA ScaleObject associated with the vLLM deployment defines the scaling rules based on the incoming requests and the desired target metrics.
+
+Here's an example of a KEDA ScaleObject for vLLM:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaleObject
+metadata:
+  name: vllm-scaleobject
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-deployment
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-server
+      metricName: http_requests_total
+      threshold: "100"
+      query: average_token_throughput_per_second[1m]
+```
+
+### 7.2.3 Power Capping Operator Integration
+
+The power capping operator integrates with vLLM deployments in the same way as it does with KServe. It watches for changes in the vLLM deployments and their associated KEDA ScaleObjects.
+
+The power capping operator performs the following steps:
+
+1. Monitors the power consumption metrics from Kepler for the vLLM deployments.
+2. Retrieves the KEDA ScaleObject associated with each vLLM deployment.
+3. Adjusts the `maxReplicaCount` of the KEDA ScaleObject based on the power consumption metrics and the defined power capping rules.
+4. Updates the KEDA ScaleObject to enforce the power capping limits.
+
+The integration with vLLM ensures that the power capping operator can effectively manage the power consumption of vLLM deployments, similar to how it manages KServe deployments.
+
+### 7.2.4 Integration Diagram
+
+```mermaid
+graph TD
+A[Power Capping Operator] -->|Monitors| B(vLLM Deployment)
+A -->|Monitors| C(KEDA ScaleObject)
+A -->|Adjusts maxReplicaCount| C
+C -->|Scales| B
+```
+
+The diagram illustrates the integration flow between the power capping operator, vLLM deployment, and KEDA ScaleObject. The power capping operator monitors the vLLM deployment and its associated KEDA ScaleObject, adjusts the `maxReplicaCount` based on the power consumption metrics, and updates the KEDA ScaleObject to enforce the power capping limits.
+
+By integrating with vLLM, the power capping operator extends its capabilities to manage the power consumption of LLM inference deployments across multiple frameworks, providing a comprehensive solution for power-efficient and scalable LLM serving.
 
 ## 8. Power Capping Operator in Action
 
