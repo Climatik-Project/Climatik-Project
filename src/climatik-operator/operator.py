@@ -5,6 +5,12 @@ import os
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
 
+# obtain prometheus host and power usage ratios from environment variables
+prom_host = os.getenv('PROMETHEUS_HOST')
+high_power_usage_ratio = float(os.getenv('HIGH_POWER_USAGE_RATIO', '0.95'))
+moderate_power_usage_ratio = float(os.getenv('MODERATE_POWER_USAGE_RATIO', '0.8'))
+
+
 # obtain prometheus host from environment variable
 prom_host = os.getenv('PROMETHEUS_HOST')
 if not prom_host:
@@ -60,7 +66,7 @@ def monitor_power_usage(spec, **kwargs):
     power_consumption = prom.custom_query(query="irate(kepler_node_joules_total[1m])")[0]['value'][1]
 
     # Check power usage against the power cap limit
-    if power_consumption >= power_cap_limit * 0.95:
+    if power_consumption >= power_cap_limit * high_power_usage_ratio:
         # Power usage is at 95% of the power cap limit
         # Set maxReplicaCount to the current number of replicas
         for scale_object_ref in scale_object_refs:
@@ -91,7 +97,7 @@ def monitor_power_usage(spec, **kwargs):
                 name=name,
                 body=scale_object
             )
-    elif power_consumption >= power_cap_limit * 0.8:
+    elif power_consumption >= power_cap_limit * moderate_power_usage_ratio:
         # Power usage is at 80% of the power cap limit
         # Set maxReplicaCount to one above the current number of replicas
         for scale_object_ref in scale_object_refs:
