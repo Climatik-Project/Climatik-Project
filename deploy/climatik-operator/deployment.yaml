@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: power-capping-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: power-capping-operator
+  template:
+    metadata:
+      labels:
+        app: power-capping-operator
+    spec:
+      serviceAccountName: power-capping-operator
+      containers:
+      - name: power-capping-operator
+        image: quay.io/climatik-project/climatik-operator
+        imagePullPolicy: Always
+        env:
+        - name: PROMETHEUS_HOST
+          value: "http://prometheus.default.svc.cluster.local:9090"
+        resources:
+          limits:
+            cpu: 100m
+            memory: 128Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: power-capping-operator
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: power-capping-operator
+rules:
+- apiGroups: ["powercapping.climatik-project.ai"]
+  resources: ["powercappingconfigs"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+- apiGroups: ["keda.sh"]
+  resources: ["scaledobjects"]
+  verbs: ["get", "list", "watch", "update", "patch"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: power-capping-operator
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: power-capping-operator
+subjects:
+- kind: ServiceAccount
+  name: power-capping-operator
+  namespace: default
