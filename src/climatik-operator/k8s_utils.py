@@ -1,5 +1,6 @@
 from kubernetes import client, config
 
+
 def list_pods_in_deployment(namespace, deployment_name, debug=False):
     # Load the Kubernetes configuration
     config.load_kube_config()
@@ -17,7 +18,7 @@ def list_pods_in_deployment(namespace, deployment_name, debug=False):
         label_selector = ",".join(
             [f"{key}={value}" for key, value in selector.items()])
         # Get the pods matching the label selector
-        pods = api_instance.list_namespaced_pod(namespace, 
+        pods = api_instance.list_namespaced_pod(namespace,
                                                 label_selector=label_selector)
         # Print the names of the pods
         if debug:
