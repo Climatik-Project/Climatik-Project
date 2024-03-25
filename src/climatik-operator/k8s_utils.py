@@ -1,12 +1,14 @@
 from kubernetes import client, config
 
 
-def list_pods_in_deployment(namespace, deployment_name, debug=False):
+def k8s_api_instance():
     # Load the Kubernetes configuration
     config.load_kube_config()
-
     # Create an instance of the Kubernetes API client
-    api_instance = client.AppsV1Api()
+    return client.AppsV1Api()
+
+def list_pods_in_deployment(namespace, deployment_name, debug=False):
+    api_instance = k8s_api_instance()
 
     try:
         # Get the deployment object
@@ -32,3 +34,32 @@ def list_pods_in_deployment(namespace, deployment_name, debug=False):
         print(f"Error: {e}")
 
     return None
+
+
+def list_resource_requests_in_deployments(namespace, resource_name='nvidia.com/gpu', debug=False):
+    api_instance = k8s_api_instance()
+
+    # prepare the list of pods
+    pods = []
+    # Get the list of deployments
+    deployments = api_instance.list_namespaced_deployment(namespace)
+    # Iterate over the deployments
+    for deployment in deployments.items:
+        # Get the pods in the deployment
+        pods = list_pods_in_deployment(namespace, deployment.metadata.name, debug)
+        # Iterate over the pods
+        for pod in pods.items:
+            # Get the containers in the pod
+            containers = pod.spec.containers
+            # Iterate over the containers
+            for container in containers:
+                # Get the resource requests for the container
+                resources = container.resources.requests
+                # Check if the resource name is in the resource requests
+                if resource_name in resources:
+                    if debug:
+                        # Print the resource request
+                        print(f"Resource request for container {container.name} in deployment {deployment.metadata.name}: {resources[resource_name]}")
+                    pods.append(pod)
+
+    return pods
