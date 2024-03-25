@@ -23,3 +23,7 @@ go.work
 # PyCharm
 .idea
 .idea/*
+
+# venv
+.env/*
+.env
