@@ -29,7 +29,7 @@ F -->|Provides Metrics| C
 
 ### 3.2 API Spec
 ```yaml
-apiVersion: powercapping.llm-serving.io/v1
+apiVersion: powercapping.climatik-project.ai/v1
 kind: PowerCappingConfig
 metadata:
   name: llm-inference-power-cap
@@ -131,7 +131,7 @@ D -->|Adjusts| C
 
 4. The power capping operator updates the PowerCappingConfig CRD with the ScaleObject references.
    ```yaml
-   apiVersion: powercapping.llm-serving.io/v1
+   apiVersion: powercapping.climatik-project.ai/v1
    kind: PowerCappingConfig
    metadata:
      name: llm-inference-power-cap
