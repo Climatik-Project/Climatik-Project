@@ -1,0 +1,15 @@
+apiVersion: powercapping.climatik-project.ai/v1
+kind: PowerCappingConfig
+metadata:
+  name: llm-example-powercappingconfig
+spec:
+  powerCapLimit: 1000
+  scaleObjectRefs:
+    - apiVersion: keda.sh/v1alpha1
+      kind: ScaleObject
+      metadata:
+        name: mistral-7b-scaleobject
+    - apiVersion: keda.sh/v1alpha1
+      kind: ScaleObject
+      metadata:
+        name: llama2-7b-scaleobject
