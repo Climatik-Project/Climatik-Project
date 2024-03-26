@@ -15,7 +15,7 @@ spec:
       serviceAccountName: power-capping-operator
       containers:
       - name: power-capping-operator
-        image: quay.io/climatik-project/climatik-operator
+        image: quay.io/climatik-project/climatik-operator:latest
         imagePullPolicy: Always
         env:
         - name: PROMETHEUS_HOST

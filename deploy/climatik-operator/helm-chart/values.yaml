@@ -1,0 +1,14 @@
+image:
+  repository: quay.io/climatik-project/climatik-operator
+  tag: latest
+  pullPolicy: Always
+
+prometheusServiceURL: "http://prometheus.default.svc.cluster.local:9090"
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 50m
+    memory: 64Mi
