@@ -1,0 +1,4 @@
+jsonschema==4.21.1
+kopf==1.37.1
+kubernetes==29.0.0
+prometheus_api_client==0.5.5
