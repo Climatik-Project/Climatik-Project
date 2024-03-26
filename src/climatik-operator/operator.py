@@ -1,6 +1,8 @@
 import kopf
 import kubernetes
 import os
+from jsonschema import validate, ValidationError
+from .crd import POWER_CAPPING_CONFIG_SCHEMA
 
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
@@ -23,6 +25,13 @@ prom = PrometheusConnect(url=prom_host, disable_ssl=True)
 @kopf.on.create('powercapping.climatik-project.ai', 'v1',
                 'powercappingconfigs')
 def create_power_capping_config(spec, **kwargs):
+    try:
+        # Validate the CRD spec against the JSON schema
+        validate(spec, POWER_CAPPING_CONFIG_SCHEMA)
+    except ValidationError as e:
+        raise kopf.PermanentError(
+            f"Invalid PowerCappingConfig spec: {e.message}")
+
     # Retrieve the power capping configuration from the custom resource
     power_cap_limit = spec.get('powerCapLimit')
     scale_object_refs = spec.get('scaleObjectRefs', [])
