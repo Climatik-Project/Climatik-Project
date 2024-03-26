@@ -27,3 +27,6 @@ go.work
 # venv
 .env/*
 .env
+
+# pycache
+__pycache__

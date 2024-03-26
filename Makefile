@@ -3,5 +3,8 @@ build-image:
 push-image: build-image	
 	docker push quay.io/climatik-project/climatik-operator:latest
 
+tests:
+	cd src
+	PROMETHEUS_HOST="example.com" python -m unittest discover tests
 
 all: build-image
