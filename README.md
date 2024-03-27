@@ -236,6 +236,58 @@ The diagram illustrates the integration flow between the power capping operator,
 
 By integrating with vLLM, the power capping operator extends its capabilities to manage the power consumption of LLM inference deployments across multiple frameworks, providing a comprehensive solution for power-efficient and scalable LLM serving.
 
+To integrate real-time carbon intensity for dynamic power capping and achieve the target carbon capping, we need to modify the power capping operator to fetch the carbon intensity data from an external source and adjust the power cap accordingly. Here's an updated integration section that includes this functionality:
+
+## 7.3 Integration with Real-Time Carbon Intensity
+
+In this integration, we enhance the power capping operator to utilize real-time carbon intensity data for dynamic power capping. The goal is to achieve a target carbon capping by adjusting the power cap based on the current carbon intensity.
+
+### 7.3.1 Carbon Intensity Data Source
+
+To obtain real-time carbon intensity data, we can use an external API or data source that provides this information. For example, we can use the [Carbon Intensity API](https://carbon-intensity.github.io/api-definitions/#carbon-intensity-api-v2-0-0) provided by the National Grid ESO in the UK. This API offers real-time and forecasted carbon intensity data for the UK electricity grid.
+
+
+### 7.3.2 Calculating Carbon Emission
+
+To calculate the carbon emission, we multiply the current power usage by the carbon intensity. The power usage can be obtained from the Kepler Prometheus metrics, as described in the previous sections. This step omits the detail of PUE (Power Usage Effectiveness) and other factors that may affect the carbon emission calculation.
+
+### 7.3.3 Adjusting Power Cap based on Carbon Intensity
+
+The power capping operator can dynamically adjust the power cap based on the current carbon intensity to achieve the target carbon capping. When the carbon intensity is high, the power cap is reduced to limit the carbon emission. Conversely, when the carbon intensity is low, the power cap can be increased to allow higher power usage.
+
+### 7.3.4 Integration with Power Capping Operator
+
+To integrate the carbon intensity-based power capping into the existing power capping operator, we need to modify the `monitor_power_usage` function to include the following steps:
+
+1. Fetch the current carbon intensity.
+2. Calculate the carbon emission.
+3. Adjust the power cap based on the current carbon intensity and target carbon cap.
+4. Update the power capping configuration with the adjusted power cap.
+
+
+### 7.3.5 Integration Diagram
+
+Here's a diagram illustrating the integration of real-time carbon intensity with the power capping operator:
+
+```mermaid
+graph LR
+A[Power Capping Operator] --> B(Fetch Carbon Intensity)
+B --> C(Calculate Carbon Emission)
+C --> D(Adjust Power Cap)
+D --> E(Update Power Capping Configuration)
+E --> A
+```
+
+In this diagram:
+
+1. The power capping operator fetches the current carbon intensity from the external data source.
+2. It calculates the carbon emission based on the current power usage and carbon intensity.
+3. The power cap is adjusted based on the carbon intensity and target carbon cap.
+4. The power capping configuration is updated with the adjusted power cap.
+5. The process continues in a loop, with the power capping operator continuously monitoring and adjusting the power cap based on the real-time carbon intensity.
+
+By integrating real-time carbon intensity into the power capping operator, we can dynamically adjust the power cap to achieve the target carbon capping. This allows for more environmentally-friendly operation of the system while still maintaining the desired performance characteristics.
+
 ## 8. Power Capping Operator in Action
 
 This section illustrates how the power capping operator works in a real-world scenario. The operator continuously monitors the power consumption metrics provided by Kepler and makes adjustments to the KEDA ScaleObjects based on the current power usage and the defined power cap limit.
