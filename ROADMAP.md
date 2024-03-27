@@ -113,3 +113,11 @@
 - Collaborate with the Kubernetes, KServe, vLLM, and other communities to ensure seamless integration.
 - Provide support for cross-project features and compatibility.
 - Contribute back to the ecosystem by sharing knowledge and expertise.
+
+## 8. Simulation and Validation
+### 8.1 Power Capping Simulation with Real-World Traces
+- Develop a simulation framework to evaluate the power capping capabilities using real-world power consumption traces.
+- Collect power consumption data from production environments or representative workloads.
+- Simulate the behavior of the power capping operator using the collected traces.
+- Analyze the effectiveness of the power capping operator in managing power usage within the defined limits.
+- Evaluate the impact of different timer settings and configurations on the success rate of power capping.
