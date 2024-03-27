@@ -69,7 +69,7 @@ def create_power_capping_config(spec, **kwargs):
             'v1',
             'powercappingconfigs',
             interval=60.0)
-def monitor_power_usage(spec, **kwargs):
+def monitor_power_usage(spec, status, **kwargs):
     # Retrieve the power capping configuration from the custom resource
     power_cap_limit = spec.get('powerCapLimit')
     scale_object_refs = spec.get('scaleObjectRefs', [])
@@ -77,6 +77,9 @@ def monitor_power_usage(spec, **kwargs):
     # obtain kepler power consumption kepler_node_joules_total and apply irate to get power in watts from prometheus client
     power_consumption = prom.custom_query(
         query="irate(kepler_node_joules_total[1m])")[0]['value'][1]
+
+    # Update the status with the current power consumption
+    status['currentPowerConsumption'] = power_consumption
 
     # Check power usage against the power cap limit
     if power_consumption >= power_cap_limit * high_power_usage_ratio:
@@ -97,7 +100,10 @@ def monitor_power_usage(spec, **kwargs):
                 name=name)
 
             # Set maxReplicaCount to the current number of replicas
-            current_replicas = scale_object['status']['currentReplicas']
+            current_replicas = get_current_replica_from_scale_object(
+                api_instance=api_instance,
+                namespace=kwargs['namespace'],
+                scale_object=scale_object)
             scale_object['spec']['maxReplicaCount'] = current_replicas
 
             # Update the ScaleObject in the Kubernetes cluster
@@ -108,6 +114,10 @@ def monitor_power_usage(spec, **kwargs):
                 plural=f"{kind.lower()}s",
                 name=name,
                 body=scale_object)
+
+        # Update the status with the forecast power consumption
+        status['forecastPowerConsumption'] = power_consumption
+
     elif power_consumption >= power_cap_limit * moderate_power_usage_ratio:
         # Power usage is at 80% of the power cap limit
         # Set maxReplicaCount to one above the current number of replicas
@@ -126,7 +136,10 @@ def monitor_power_usage(spec, **kwargs):
                 name=name)
 
             # Set maxReplicaCount to one above the current number of replicas
-            current_replicas = scale_object['status']['currentReplicas']
+            current_replicas = get_current_replica_from_scale_object(
+                api_instance=api_instance,
+                namespace=kwargs['namespace'],
+                scale_object=scale_object)
             scale_object['spec']['maxReplicaCount'] = current_replicas + 1
 
             # Update the ScaleObject in the Kubernetes cluster
@@ -138,8 +151,21 @@ def monitor_power_usage(spec, **kwargs):
                 name=name,
                 body=scale_object)
 
+        # Update the status with the forecast power consumption
+        status['forecastPowerConsumption'] = power_consumption * (
+            (current_replicas + 1) / current_replicas)
+
 
 def calculate_max_replicas(power_cap_limit):
     # Implement the logic to calculate the maximum replicas based on the power cap limit
-    # This is just a placeholder, replace it with your actual calculation
+    # This is just a placeholder, replace it with your actual calculation @wenboown
     return int(power_cap_limit / 100)
+
+
+def get_current_replica_from_scale_object(api_instance, namespace,
+                                          scale_object):
+    deployment = api_instance.read_namespaced_deployment(
+        namespace=namespace,
+        name=scale_object['spec']['scaleTargetRef']['name'])
+
+    return deployment.spec.replicas
