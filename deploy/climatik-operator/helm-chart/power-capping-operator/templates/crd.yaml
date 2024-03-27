@@ -41,6 +41,13 @@ spec:
               required:
                 - powerCapLimit
                 - scaleObjectRefs
+            status:
+              type: object
+              properties:
+                currentPowerConsumption:
+                  type: number
+                forecastPowerConsumption:
+                  type: number
   scope: Namespaced
   names:
     plural: powercappingconfigs
