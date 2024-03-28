@@ -48,6 +48,8 @@ jobs:
     needs: createPR
     if: needs.createPR.outputs.pull_request_number
     runs-on: ubuntu-latest
+    outputs:
+      format_check_result: ${{ steps.format_check.outcome }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -65,6 +67,7 @@ jobs:
           pip install flake8 pytest yapf
 
       - name: Check format with YAPF
+        id: format_check
         run: |
           STYLE="pep8"
           yapf --diff --recursive --style=$STYLE src || {
@@ -73,13 +76,9 @@ jobs:
             exit 1
           }
 
-      - name: Format check passed
-        if: success()
-        run: echo "Format check passed"
-
   mergePR:
     needs: [createPR, formatCheck]
-    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.result == 'success'
+    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.outputs.format_check_result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
