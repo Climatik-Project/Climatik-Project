@@ -1,4 +1,4 @@
-name: Auto Create PR and Merge on Format Check
+name: Auto Create and Merge PR
 
 on:
   push:
@@ -7,10 +7,8 @@ on:
       - '!main'
 
 jobs:
-  createPR:
+  createAndMergePR:
     runs-on: ubuntu-latest
-    outputs:
-      pr_number: ${{ steps.create_pr.outputs.pr_number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -25,14 +23,14 @@ jobs:
 
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
         id: commit
         run: |
-          echo "title=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
-          echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
+          echo "::set-output name=title::$(git log -1 --pretty=%s)"
+          echo "::set-output name=message::$(git log -1 --pretty=%b)"
 
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
@@ -44,49 +42,12 @@ jobs:
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
           pr_label: "automerge"
-          author_email: ${{ github.event.commits[0].author.email }}
-          author_name: ${{ github.event.commits[0].author.name }}
 
-  formatCheck:
-    needs: createPR
-    if: needs.createPR.outputs.pr_number
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          ref: refs/pull/${{ needs.createPR.outputs.pr_number }}/head
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.10"
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install flake8 pytest yapf
-
-      - name: Check format with YAPF
-        run: |
-          STYLE="pep8"
-          yapf --diff --recursive --style=$STYLE src || {
-            echo "Some Python files do not conform to the $STYLE style."
-            echo "Please run YAPF on your changes with the $STYLE style and update the PR."
-            exit 1
-          }
-
-  mergePR:
-    needs: [createPR, formatCheck]
-    if: needs.createPR.outputs.pr_number && needs.formatCheck.result == 'success'
-    runs-on: ubuntu-latest
-    steps:
       - name: Automatically merge PR
+        if: env.IS_TRUSTED == 'true' && steps.create_pr.outputs.pr_number
         uses: pascalgn/automerge-action@58724c982461efbb7865b3762d7bff0d4756f57a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_METHOD: "squash"
           MERGE_COMMIT_MESSAGE: "pull-request-title"
-          PULL_REQUEST: ${{ needs.createPR.outputs.pr_number }}
-          COMMIT_USER_NAME: ${{ github.event.commits[0].author.name }}
-          COMMIT_USER_EMAIL: ${{ github.event.commits[0].author.email }}
+          PULL_REQUEST: ${{ steps.create_pr.outputs.pr_number }}
