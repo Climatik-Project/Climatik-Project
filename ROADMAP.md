@@ -77,12 +77,17 @@
 - Cover core functionality, integration points, and enhancement features.
 - Ensure high code coverage and maintain test quality.
 
-### 5.2 Integration Testing
+### 5.2 Simulated Integration Testing
+- Develop integration tests to validate the operator's behavior in a simulated cluster environment.
+- Test integration with Kubernetes deployments, KServe, vLLM, and carbon intensity data sources in a simulator.
+- Verify the operator's ability to enforce power capping and achieve target carbon capping in a simulator.
+
+### 5.3 Integration Testing
 - Develop integration tests to validate the operator's behavior in a real cluster environment.
 - Test integration with Kubernetes deployments, KServe, vLLM, and carbon intensity data sources.
 - Verify the operator's ability to enforce power capping and achieve target carbon capping.
 
-### 5.3 Performance Testing
+### 5.4 Performance Testing
 - Conduct performance tests to evaluate the operator's scalability and efficiency.
 - Measure the impact of power capping on LLM inference throughput and latency.
 - Optimize the operator's performance based on the test results.
