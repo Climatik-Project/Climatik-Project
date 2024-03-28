@@ -1,0 +1,24 @@
+name: Auto Merge PRs
+
+on:
+  pull_request:
+    types: [opened, labeled, synchronize]
+    branches:
+      - main
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.user.login == 'trusted_contributor1' || github.event.pull_request.user.login == 'trusted_contributor2'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Automatically merge PR
+        if: contains(github.event.pull_request.labels.*.name, 'automerge')
+        uses: pascalgn/automerge-action@v0.14.3
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "pull-request-title"
+          MERGE_FILTER_AUTHOR: "trusted_contributor1, trusted_contributor2"
