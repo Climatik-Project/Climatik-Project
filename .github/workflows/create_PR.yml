@@ -9,18 +9,31 @@ on:
 jobs:
   createPR:
     runs-on: ubuntu-latest
-    if: contains(fromJson(secrets.TRUSTED_CONTRIBUTORS), github.actor)
     steps:
+      - name: Check if actor is trusted
+        id: check_trusted
+        env:
+          TRUSTED_CONTRIBUTORS: ${{ secrets.TRUSTED_CONTRIBUTORS }}
+        run: |
+          if echo "${TRUSTED_CONTRIBUTORS}" | grep -wq "${{ github.actor }}"; then
+            echo "IS_TRUSTED=true" >> $GITHUB_ENV
+          else
+            echo "IS_TRUSTED=false" >> $GITHUB_ENV
+          fi
+
       - name: Checkout code
+        if: env.IS_TRUSTED == 'true'
         uses: actions/checkout@v2
 
       - name: Get last commit title and message
+        if: env.IS_TRUSTED == 'true'
         id: commit
         run: |
           echo "::set-output name=title::$(git log -1 --pretty=%s)"
           echo "::set-output name=message::$(git log -1 --pretty=%b)"
 
       - name: Create Pull Request
+        if: env.IS_TRUSTED == 'true'
         uses: repo-sync/pull-request@v2
         with:
           destination_branch: "main"
