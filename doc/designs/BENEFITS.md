@@ -28,18 +28,15 @@ inference services.
 4. **Economies of Scale**: Increased server capacity and revenue growth for hardware vendors and platform providers lead
    to economies of scale, reducing unit costs and improving economic efficiency.
 
-### Revenue Growth and Pricing
+### Revenue Growth Opportunities
 
 1. **Competitive Pricing**: By increasing server capacity and optimizing energy usage, data centers can offer more
-   competitive prices to customers while maintaining profitability.
+   competitive prices to customers by improving resource utilization and reducing costs due to service disruption.
 
-2. **Revenue Growth for Hardware Vendors**: With the ability to host more servers in data centers, hardware vendors can
-   benefit from increased hardware sales, leading to revenue growth.
+2. **Revenue Growth for System Providers**: With the ability to host more servers in data centers, both hardware and 
+   software vendors can benefit from increased systems sales, leading to revenue growth even with power capping constraints.
 
-3. **Increased Revenue for Platform Providers**: Platform providers, such as OpenShift, that charge based on server core
-   count can generate more revenue due to the higher number of server cores in use.
-
-4. **Additional Revenue Streams**: Data centers can generate extra revenue by selling excess carbon allowances on the
+3. **Additional Revenue Streams**: Data centers can generate extra revenue by selling excess carbon allowances on the
    market, enabling them to offer more attractive pricing to customers.
 
 ### Environmental Sustainability
