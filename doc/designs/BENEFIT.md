@@ -35,7 +35,10 @@ inference services.
    and dynamically reshaping power profiles, it reduces power fragmentation and improves overall power utilization
    efficiency.
 
-6. **Integration with Existing Ecosystems**: 
+6. **Integration with Existing Ecosystems**: The power-capped LLM inference service seamlessly integrates with popular
+   frameworks like KServe and vLLM, enabling easy deployment and management of LLM workloads. It also leverages KEDA for
+   scalable and event-driven autoscaling, ensuring optimal resource allocation based on workload demands.
+
 7. **Monitoring and Observability**:
 8. **Cost Savings**: 
 9. **Environmental Sustainability**: 
