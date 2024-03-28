@@ -9,4 +9,3 @@ class BasePowerCappingStrategy(ABC):
                                power_consumptions: Dict[str, float],
                                total_power_cap: float) -> Dict[str, int]:
         pass
-c

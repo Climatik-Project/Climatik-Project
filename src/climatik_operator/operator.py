@@ -113,7 +113,8 @@ def monitor_power_usage(spec, status, **kwargs):
         current_replicas[deployment_name] = deployment.spec.replicas
 
         # Retrieve the power consumption for the deployment
-        power_consumption = get_power_consumption(deployment_name)
+        power_consumption = get_power_consumption(
+            namespace=kwargs['namespace'], deployment_name=deployment_name)
         power_consumptions[deployment_name] = power_consumption
 
     # Calculate the updated maxReplicas for each deployment based on the selected strategy
@@ -187,7 +188,7 @@ def get_current_replica_from_scale_object(api_instance, namespace,
     return deployment.spec.replicas
 
 
-def get_power_consumption(deployment_name, namespace, prometheus_url):
+def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
     query = f'sum(rate(kepler_container_joules_total{{pod_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
 
