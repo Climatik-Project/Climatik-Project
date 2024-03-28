@@ -26,7 +26,10 @@ inference services.
    the power capping operator maximizes the utilization of available power headroom. This allows for hosting more
    servers and achieving higher throughput within the existing power infrastructure.
 
-4. **Carbon Footprint Reduction**: 
+4. **Carbon Footprint Reduction**: The integration of real-time carbon intensity data enables dynamic power capping
+   based on the carbon intensity of the electricity grid. By adjusting the power cap in response to carbon intensity
+   fluctuations, the system can prioritize renewable energy sources and minimize its carbon footprint.
+
 5. **Power Usage Smoothing**: 
 6. **Integration with Existing Ecosystems**: 
 7. **Monitoring and Observability**:
