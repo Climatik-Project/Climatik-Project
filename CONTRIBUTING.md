@@ -48,8 +48,6 @@ Examples of unacceptable behavior by participants include:
 
 Project maintainers have the right and responsibility to remove, edit, or reject comments, commits, code, wiki edits, issues, and other contributions that are not aligned to this Code of Conduct, or to ban temporarily or permanently any contributor for other behaviors that they deem inappropriate, threatening, offensive, or harmful.
 
-
-
 ## License
 The Climatik Project is licensed under the Apache License, Version 2.0. By contributing to this project, you agree that your contributions will be licensed under the same license. See the [LICENSE](https://github.com/Climatik-Project/Climatik-Project/blob/main/LICENSE) file for more information.
 
@@ -57,3 +55,6 @@ The Climatik Project is licensed under the Apache License, Version 2.0. By contr
 ## Acknowledgements
 
 ## References
+- [GitHub documentation on contributing to open source](https://docs.github.com/en/github/collaborating-with-issues-and-pull-requests)
+- [Open Source Guides](https://opensource.guide/)
+- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
