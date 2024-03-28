@@ -13,8 +13,13 @@ jobs:
       - name: Check if actor is trusted
         id: check_trusted
         env:
-          TRUSTED_CONTRIBUTORS: ${{ github.secrets.TRUSTED_CONTRIBUTORS }}
-        run: echo "IS_TRUSTED=$(echo ${{ fromJson($TRUSTED_CONTRIBUTORS) }} | grep -wq ${{ github.actor }} && echo 'true' || echo 'false')" >> $GITHUB_ENV
+          TRUSTED_CONTRIBUTORS: ${{ secrets.TRUSTED_CONTRIBUTORS }}
+        run: |
+          if echo "${TRUSTED_CONTRIBUTORS}" | grep -wq "${{ github.actor }}"; then
+            echo "IS_TRUSTED=true" >> $GITHUB_ENV
+          else
+            echo "IS_TRUSTED=false" >> $GITHUB_ENV
+          fi
 
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
