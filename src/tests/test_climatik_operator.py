@@ -58,7 +58,6 @@ class TestPowerCappingOperator(unittest.TestCase):
         self.mock_api_client.patch_namespaced_custom_object.assert_called_once(
         )
 
-
     def test_calculate_max_replicas(self):
         # Define the test power cap limit
         power_cap_limit = 1000
