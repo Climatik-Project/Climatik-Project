@@ -18,7 +18,10 @@ inference services.
    managing LLM inference services. It allows for dynamic scaling of services based on workload demands, ensuring
    optimal resource utilization and responsiveness to user requests.
 
-2. **Power Efficiency**: 
+2. **Power Efficiency**: The power capping operator enables fine-grained control over power consumption by continuously
+   monitoring power usage and adjusting the scaling behavior of LLM inference services. It ensures that the system
+   operates within the specified power cap limit, preventing excessive power consumption and reducing energy costs.
+
 3. **Improved Throughput**: 
 4. **Carbon Footprint Reduction**: 
 5. **Power Usage Smoothing**: 
