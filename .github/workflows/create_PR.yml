@@ -1,0 +1,29 @@
+name: Auto Create PR on Push
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+
+jobs:
+  createPR:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Get last commit title and message
+        id: commit
+        run: |
+          echo "::set-output name=title::$(git log -1 --pretty=%s)"
+          echo "::set-output name=message::$(git log -1 --pretty=%b)"
+
+      - name: Create Pull Request
+        uses: repo-sync/pull-request@v2
+        with:
+          destination_branch: "main"
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          pr_title: "${{ steps.commit.outputs.title }}"
+          pr_body: "${{ steps.commit.outputs.message }}"
+          pr_label: "automerge"
