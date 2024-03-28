@@ -18,10 +18,10 @@ Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the
   service.
 - Custom Resource Definition (CRD): Defines the power capping limit and other configuration parameters for the LLM
   inference service.
-- KEDA: Kubernetes Event-Driven Autoscaling tool that scales the LLM inference service deployment based on the power
+- [KEDA](https://github.com/kedacore/keda): Kubernetes Event-Driven Autoscaling tool that scales the LLM inference service deployment based on the power
   consumption metrics.
 - LLM Inference Service: A Kubernetes deployment that runs the LLM inference workload.
-- Kepler: A power monitoring tool that measures the power consumption of CPU and GPU resources on the server.
+- [Kepler](https://github.com/sustainable-computing-io/kepler): A power monitoring tool that measures the power consumption of CPU and GPU resources on the server.
 
 ### 2.2 Flow Chart
 
