@@ -1,4 +1,4 @@
-name: Auto Create and Merge PR
+name: Auto Create PR and Merge on Format Check
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - '!main'
 
 jobs:
-  createAndMergePR:
+  createPR:
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is trusted
@@ -41,13 +41,49 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
-          pr_label: "automerge"
 
+  formatCheck:
+    needs: createPR
+    if: needs.createPR.outputs.pull_request_number
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 pytest yapf
+
+      - name: Check format with YAPF
+        run: |
+          STYLE="pep8"
+          yapf --diff --recursive --style=$STYLE src || {
+            echo "Some Python files do not conform to the $STYLE style."
+            echo "Please run YAPF on your changes with the $STYLE style and update the PR."
+            exit 1
+          }
+
+      - name: Format check passed
+        if: success()
+        run: echo "Format check passed"
+
+  mergePR:
+    needs: [createPR, formatCheck]
+    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
       - name: Automatically merge PR
-        if: env.IS_TRUSTED == 'true' && steps.create_pr.outputs.pr_number
         uses: pascalgn/automerge-action@58724c982461efbb7865b3762d7bff0d4756f57a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_METHOD: "squash"
           MERGE_COMMIT_MESSAGE: "pull-request-title"
-          PULL_REQUEST: ${{ steps.create_pr.outputs.pr_number }}
+          PULL_REQUEST: ${{ needs.createPR.outputs.pull_request_number }}
