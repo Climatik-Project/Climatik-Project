@@ -7,3 +7,6 @@
 | Bo Wen | IBM | wenboown | bwen@us.ibm.com |
 | Dan Sun | Bloomberg | yuzisun  | dsun20@bloomberg.net  |
 | Shengbo Hou | Bloomberg | houshengbo | shou73@bloomberg.net |
+
+Please note that some of the maintainers' commit will be created as PR and auto merged into the `main` branch. If 
+you want to be added to the list of trusted contributors, please contact Huamin Chen.
