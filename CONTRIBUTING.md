@@ -51,6 +51,8 @@ Project maintainers have the right and responsibility to remove, edit, or reject
 
 
 ## License
+The Climatik Project is licensed under the Apache License, Version 2.0. By contributing to this project, you agree that your contributions will be licensed under the same license. See the [LICENSE](https://github.com/Climatik-Project/Climatik-Project/blob/main/LICENSE) file for more information.
+
 
 ## Acknowledgements
 
