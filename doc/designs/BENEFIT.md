@@ -30,7 +30,11 @@ inference services.
    based on the carbon intensity of the electricity grid. By adjusting the power cap in response to carbon intensity
    fluctuations, the system can prioritize renewable energy sources and minimize its carbon footprint.
 
-5. **Power Usage Smoothing**: 
+5. **Power Usage Smoothing**: The power capping operator leverages insights from research on power utilization in
+   large-scale data centers to smooth power usage across power nodes. By grouping services with asynchronous peak times
+   and dynamically reshaping power profiles, it reduces power fragmentation and improves overall power utilization
+   efficiency.
+
 6. **Integration with Existing Ecosystems**: 
 7. **Monitoring and Observability**:
 8. **Cost Savings**: 
