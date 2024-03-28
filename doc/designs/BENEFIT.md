@@ -22,7 +22,10 @@ inference services.
    monitoring power usage and adjusting the scaling behavior of LLM inference services. It ensures that the system
    operates within the specified power cap limit, preventing excessive power consumption and reducing energy costs.
 
-3. **Improved Throughput**: 
+3. **Improved Throughput**: By intelligently distributing workloads across power nodes and optimizing service placement,
+   the power capping operator maximizes the utilization of available power headroom. This allows for hosting more
+   servers and achieving higher throughput within the existing power infrastructure.
+
 4. **Carbon Footprint Reduction**: 
 5. **Power Usage Smoothing**: 
 6. **Integration with Existing Ecosystems**: 
