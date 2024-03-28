@@ -3,6 +3,7 @@ import kubernetes
 import os
 from jsonschema import validate, ValidationError
 from .crd import POWER_CAPPING_CONFIG_SCHEMA
+from .strategies import get_power_capping_strategy
 
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
@@ -17,6 +18,11 @@ moderate_power_usage_ratio = float(
 prom_host = os.getenv('PROMETHEUS_HOST')
 if not prom_host:
     raise ValueError("PROMETHEUS_HOST environment variable is not set")
+
+# Obtain the selected power capping strategy from an environment variable
+selected_strategy = os.getenv('POWER_CAPPING_STRATEGY', 'maximize_replicas')
+# Get the selected power capping strategy instance
+power_capping_strategy = get_power_capping_strategy(selected_strategy)
 
 # Create a Prometheus API client
 prom = PrometheusConnect(url=prom_host, disable_ssl=True)
