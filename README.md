@@ -5,7 +5,7 @@
 The purpose of this project is to create a scalable and power-efficient LLM (Large Language Model) inference service
 using Kubernetes. The service will utilize a custom power capping operator that accepts a Custom Resource Definition (
 CRD) to specify the power capping limit. The operator will use KEDA (Kubernetes Event-Driven Autoscaling) to scale the
-LLM inference service deployment based on the specified power cap. Kepler, a power monitoring tool, will be used to
+LLM inference service deployment based on the specified power cap. [Kepler](https://github.com/sustainable-computing-io/kepler), a power monitoring tool, will be used to
 monitor the power consumption of CPU and GPU resources on the server.
 
 Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the motivations of this project.
