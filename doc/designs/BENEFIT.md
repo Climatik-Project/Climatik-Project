@@ -48,7 +48,10 @@ inference services.
    power-capped LLM inference service helps reduce energy costs and infrastructure expenses. It allows organizations to
    serve more user requests with the same power budget, leading to significant cost savings.
 
-9. **Environmental Sustainability**: 
+9. **Environmental Sustainability**: The focus on power efficiency and carbon footprint reduction aligns with the
+   growing emphasis on environmental sustainability in the technology industry. By minimizing energy consumption and
+   prioritizing renewable energy sources, this project contributes to the global efforts in combating climate change.
+
 
 The power-capped LLM inference service using Kubernetes addresses the critical challenges of scalability, power
 efficiency, and carbon footprint reduction in serving large language models. It provides a comprehensive solution that
