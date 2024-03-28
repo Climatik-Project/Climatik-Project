@@ -4,8 +4,8 @@
 
 Estimating the available energy cap at a data center is crucial for implementing power capping strategies and optimizing
 energy usage. This document outlines a high-level algorithm for estimating the energy cap based on various factors,
-including power infrastructure capacity, cooling system efficiency, IT equipment power consumption, and renewable energy
-availability.
+including power infrastructure capacity, cooling system efficiency, IT equipment power consumption, renewable energy
+availability, and variable energy delivery from the power plant.
 
 ## Factors Influencing Energy Cap Estimation
 
@@ -26,6 +26,12 @@ availability.
 
 6. **Carbon Intensity**: The carbon intensity of the electricity grid, which varies based on the energy mix and the time
    of day, affecting the carbon footprint of the data center.
+
+7. **Variable Energy Delivery**: The total energy available from the power plant that is delivered to the data center
+   may vary throughout the day due to peak usage from other areas sharing the same grid.
+
+8. **Electricity Price and Carbon Intensity Index**: The electricity price and carbon intensity index are usually
+   reported hourly, providing insights into the cost and environmental impact of energy consumption at different times.
 
 ## Energy Cap Estimation Algorithm
 
@@ -54,34 +60,45 @@ availability.
       consumption.
     - A lower PUE indicates higher efficiency and allows for a higher energy cap allocation to the IT equipment.
 
-6. **Factor in Carbon Intensity**:
-    - Retrieve real-time or historical carbon intensity data from the electricity grid or carbon intensity APIs.
-    - Adjust the energy cap estimation based on the carbon intensity, prioritizing energy usage during periods of lower
-      carbon intensity.
+6. **Factor in Carbon Intensity and Electricity Price**:
+    - Retrieve hourly carbon intensity and electricity price data from reliable sources or APIs.
+    - Prioritize energy usage during periods of lower carbon intensity and lower electricity prices to minimize the
+      environmental impact and cost.
 
-7. **Estimate Available Energy Cap**:
+7. **Estimate Variable Energy Delivery**:
+    - Analyze historical data and patterns of energy delivery from the power plant to the data center.
+    - Consider peak usage periods and variations in energy availability throughout the day.
+    - Adjust the energy cap estimation based on the expected variable energy delivery.
+
+8. **Estimate Available Energy Cap**:
     - Calculate the available energy cap by subtracting the cooling system power consumption and other overheads from
       the power infrastructure capacity.
-    - Adjust the energy cap based on the renewable energy availability, PUE, and carbon intensity factors.
+    - Adjust the energy cap based on the renewable energy availability, PUE, carbon intensity, electricity price, and
+      variable energy delivery factors.
 
-8. **Allocate Energy Cap to IT Equipment**:
+9. **Allocate Energy Cap to IT Equipment**:
     - Distribute the available energy cap among the IT equipment based on their power consumption and criticality.
     - Implement power capping mechanisms to ensure that the IT equipment operates within the allocated energy cap.
 
-9. **Continuously Monitor and Optimize**:
-    - Continuously monitor the power consumption, cooling system efficiency, renewable energy generation, and carbon
-      intensity.
+10. **Continuously Monitor and Optimize**:
+    - Continuously monitor the power consumption, cooling system efficiency, renewable energy generation, carbon
+      intensity, electricity price, and variable energy delivery.
     - Adjust the energy cap estimation and allocation based on real-time data and optimization algorithms to maximize
-      energy efficiency and minimize the carbon footprint.
+      energy efficiency, minimize costs, and reduce the carbon footprint.
 
 ## Conclusion
 
-Estimating the available energy cap at a data center involves considering various factors such as power infrastructure
-capacity, cooling system efficiency, IT equipment power consumption, renewable energy availability, PUE, and carbon
-intensity. By implementing an energy cap estimation algorithm that takes these factors into account, data centers can
-optimize their energy usage, reduce costs, and minimize their environmental impact.
+Estimating the available energy cap at a data center involves considering various factors, including power
+infrastructure capacity, cooling system efficiency, IT equipment power consumption, renewable energy availability, PUE,
+carbon intensity, electricity price, and variable energy delivery from the power plant. By implementing an energy cap
+estimation algorithm that takes these factors into account, data centers can optimize their energy usage, reduce costs,
+minimize their environmental impact, and adapt to variable energy availability.
 
-The algorithm outlined in this document provides a high-level framework for estimating the energy cap. It can be further
-refined and customized based on the specific characteristics and requirements of each data center. Regular monitoring,
-data collection, and optimization are essential to ensure the accuracy and effectiveness of the energy cap estimation
-and allocation process.
+The algorithm outlined in this document provides a high-level framework for estimating the energy cap. It incorporates
+hourly electricity price and carbon intensity data to make informed decisions about energy usage and allocation. The
+algorithm also considers the variable energy delivery from the power plant, allowing data centers to adjust their energy
+cap estimation based on expected variations in energy availability throughout the day.
+
+Regular monitoring, data collection, and optimization are essential to ensure the accuracy and effectiveness of the
+energy cap estimation and allocation process. By continuously adapting to changing conditions and leveraging real-time
+data, data centers can maximize energy efficiency, reduce costs, and minimize their carbon footprint.
