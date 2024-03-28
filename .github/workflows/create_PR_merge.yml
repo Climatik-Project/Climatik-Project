@@ -9,6 +9,8 @@ on:
 jobs:
   createPR:
     runs-on: ubuntu-latest
+    outputs:
+      pull_request_number: ${{ steps.create_pr.outputs.pull_request_number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -50,7 +52,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: refs/pull/${{ needs.createPR.outputs.pull_request_number }}/head
 
       - name: Set up Python
         uses: actions/setup-python@v3
