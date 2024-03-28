@@ -39,7 +39,11 @@ inference services.
    frameworks like KServe and vLLM, enabling easy deployment and management of LLM workloads. It also leverages KEDA for
    scalable and event-driven autoscaling, ensuring optimal resource allocation based on workload demands.
 
-7. **Monitoring and Observability**:
+7. **Monitoring and Observability**: The system provides comprehensive monitoring and observability features, including
+   integration with Prometheus for collecting power consumption metrics and Grafana for visualizing power usage, carbon
+   emissions, and system performance. This enables data-driven decision-making and continuous optimization of the LLM
+   inference service.
+
 8. **Cost Savings**: 
 9. **Environmental Sustainability**: 
 
