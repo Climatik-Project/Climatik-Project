@@ -1,4 +1,4 @@
-name: Auto Create PR on Push
+name: Auto Create and Merge PR
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
       - '!main'
 
 jobs:
-  createPR:
+  createAndMergePR:
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is trusted
@@ -34,6 +34,7 @@ jobs:
 
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
+        id: create_pr
         uses: repo-sync/pull-request@v2
         with:
           destination_branch: "main"
@@ -41,3 +42,12 @@ jobs:
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
           pr_label: "automerge"
+
+      - name: Automatically merge PR
+        if: env.IS_TRUSTED == 'true' && steps.create_pr.outputs.pr_number
+        uses: pascalgn/automerge-action@58724c982461efbb7865b3762d7bff0d4756f57a
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_METHOD: "squash"
+          MERGE_COMMIT_MESSAGE: "pull-request-title"
+          PULL_REQUEST: ${{ steps.create_pr.outputs.pr_number }}
