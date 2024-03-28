@@ -9,6 +9,7 @@ on:
 jobs:
   createPR:
     runs-on: ubuntu-latest
+    if: contains(fromJson(secrets.TRUSTED_CONTRIBUTORS), github.actor)
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
