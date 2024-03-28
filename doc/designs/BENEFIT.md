@@ -44,7 +44,10 @@ inference services.
    emissions, and system performance. This enables data-driven decision-making and continuous optimization of the LLM
    inference service.
 
-8. **Cost Savings**: 
+8. **Cost Savings**: By optimizing power utilization and maximizing throughput within power constraints, the
+   power-capped LLM inference service helps reduce energy costs and infrastructure expenses. It allows organizations to
+   serve more user requests with the same power budget, leading to significant cost savings.
+
 9. **Environmental Sustainability**: 
 
 The power-capped LLM inference service using Kubernetes addresses the critical challenges of scalability, power
