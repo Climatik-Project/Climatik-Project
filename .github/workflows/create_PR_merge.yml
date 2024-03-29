@@ -43,6 +43,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
+          pr_label: "automerge"
 
   formatCheck:
     needs: createPR
