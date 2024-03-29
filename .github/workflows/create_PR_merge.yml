@@ -14,7 +14,7 @@ jobs:
   createPR:
     runs-on: ubuntu-latest
     outputs:
-      pr_number: ${{ steps.create_pr.outputs.pull_request_number }}
+      pr_number: ${{ steps.create_pr.outputs.pull-request-number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -43,8 +43,8 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
-          base: main # The branch you want to merge INTO
-          branch: ${{ github.ref_name }}
+          base: ${{ github.ref_name }}
+          branch: main
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
           labels: automerge
@@ -53,7 +53,7 @@ jobs:
 
       - name: Debug - Print Pull Request Number
         if: env.IS_TRUSTED == 'true'
-        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull_request_number }}"
+        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull-request-number }}"
 
   formatCheck:
     needs: createPR
