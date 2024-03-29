@@ -44,6 +44,8 @@ jobs:
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
           pr_label: "automerge"
+          author_email: ${{ github.event.commits[0].author.email }}
+          author_name: ${{ github.event.commits[0].author.name }}
 
   formatCheck:
     needs: createPR
@@ -86,3 +88,5 @@ jobs:
           MERGE_METHOD: "squash"
           MERGE_COMMIT_MESSAGE: "pull-request-title"
           PULL_REQUEST: ${{ needs.createPR.outputs.pr_number }}
+          COMMIT_USER_NAME: ${{ github.event.commits[0].author.name }}
+          COMMIT_USER_EMAIL: ${{ github.event.commits[0].author.email }}
