@@ -6,6 +6,10 @@ on:
       - '**'
       - '!main'
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   createPR:
     runs-on: ubuntu-latest
