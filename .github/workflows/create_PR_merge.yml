@@ -48,8 +48,6 @@ jobs:
           gh_pr_up --title "${{ steps.commit.outputs.title }}" \
                    --body "${{ steps.commit.outputs.message }}" \
                    --label automerge \
-                   --author "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>" \
-                   --committer "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>" \
                    --head "${{ github.ref }}" \
                    --base main
           echo "pull_request_number=$(gh pr view --json number --jq .number)" >> $GITHUB_OUTPUT
