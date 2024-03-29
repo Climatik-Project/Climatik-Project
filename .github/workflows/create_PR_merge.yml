@@ -51,6 +51,10 @@ jobs:
           author: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
           committer: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
 
+      - name: Debug - Print Pull Request Number
+        if: env.IS_TRUSTED == 'true'
+        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull-request-number }}"
+
   formatCheck:
     needs: createPR
     if: needs.createPR.outputs.pr_number
