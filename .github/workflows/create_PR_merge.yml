@@ -38,18 +38,25 @@ jobs:
           echo "title=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
           echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
 
-      - name: Create Pull Request
+      - name: Create or Update Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh_pr_up() { gh pr create "$@" || gh pr edit "$@"; }
-          gh_pr_up --title "${{ steps.commit.outputs.title }}" \
-                   --body "${{ steps.commit.outputs.message }}" \
-                   --label automerge \
-                   --head "${{ github.ref }}" \
-                   --base main
+          PR_URL=$(gh pr list --head "${{ github.ref_name }}" --base main --json url --jq '.[0].url')
+          if [[ -z "$PR_URL" ]]; then
+            # No existing PR found, create a new one
+            gh pr create --title "${{ steps.commit.outputs.title }}" \
+                         --body "${{ steps.commit.outputs.message }}" \
+                         --base main \
+                         --head "${{ github.ref_name }}" \
+                         --label automerge
+          else
+            # Existing PR found, add a label to it
+            PR_NUMBER=$(echo "$PR_URL" | grep -o '[^/]*$')
+            gh pr edit "$PR_NUMBER" --add-label automerge
+          fi
           echo "pull_request_number=$(gh pr view --json number --jq .number)" >> $GITHUB_OUTPUT
 
   formatCheck:
