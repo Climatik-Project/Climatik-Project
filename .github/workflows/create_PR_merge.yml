@@ -10,7 +10,7 @@ jobs:
   createPR:
     runs-on: ubuntu-latest
     outputs:
-      pull_request_number: ${{ steps.create_pr.outputs.pull_request_number }}
+      pr_number: ${{ steps.create_pr.outputs.pr_number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -46,13 +46,13 @@ jobs:
 
   formatCheck:
     needs: createPR
-    if: needs.createPR.outputs.pull_request_number
+    if: needs.createPR.outputs.pr_number
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ needs.createPR.outputs.pull_request_number }}/head
+          ref: refs/pull/${{ needs.createPR.outputs.pr_number }}/head
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -75,7 +75,7 @@ jobs:
 
   mergePR:
     needs: [createPR, formatCheck]
-    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.result == 'success'
+    if: needs.createPR.outputs.pr_number && needs.formatCheck.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
@@ -84,4 +84,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_METHOD: "squash"
           MERGE_COMMIT_MESSAGE: "pull-request-title"
-          PULL_REQUEST: ${{ needs.createPR.outputs.pull_request_number }}
+          PULL_REQUEST: ${{ needs.createPR.outputs.pr_number }}
