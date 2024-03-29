@@ -37,7 +37,7 @@ jobs:
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v6
         with:
           base: main
           branch: auto-pr-${{ github.sha }}
@@ -82,7 +82,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
-        uses: peter-evans/enable-pull-request-automerge@v2
-        with:
-          pull-request-number: ${{ needs.createPR.outputs.pr_number }}
-          merge-method: squash
+        run: gh pr merge --merge --auto "1"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
