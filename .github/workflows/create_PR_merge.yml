@@ -10,7 +10,7 @@ jobs:
   createPR:
     runs-on: ubuntu-latest
     outputs:
-      pull_request_number: ${{ steps.create_pr.outputs.pull_request_number }}
+      pr_number: ${{ steps.create_pr.outputs.pr_number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -44,22 +44,15 @@ jobs:
           pr_title: "${{ steps.commit.outputs.title }}"
           pr_body: "${{ steps.commit.outputs.message }}"
 
-      - name: Debug - Print Pull Request Number
-        if: env.IS_TRUSTED == 'true'
-        run: echo "Pull Request Number - ${{ steps.create_pr.outputs.pull_request_number }}"
-
   formatCheck:
     needs: createPR
-    if: needs.createPR.outputs.pull_request_number
+    if: needs.createPR.outputs.pr_number
     runs-on: ubuntu-latest
     steps:
-      - name: Debug - Print Pull Request Number
-        run: echo "Pull Request Number - ${{ needs.createPR.outputs.pull_request_number }}"
-
       - name: Checkout code
         uses: actions/checkout@v4
         with:
-          ref: refs/pull/${{ needs.createPR.outputs.pull_request_number }}/head
+          ref: refs/pull/${{ needs.createPR.outputs.pr_number }}/head
 
       - name: Set up Python
         uses: actions/setup-python@v3
@@ -82,19 +75,13 @@ jobs:
 
   mergePR:
     needs: [createPR, formatCheck]
-    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.result == 'success'
+    if: needs.createPR.outputs.pr_number && needs.formatCheck.result == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Debug - Print Pull Request Number
-        run: echo "Pull Request Number - ${{ needs.createPR.outputs.pull_request_number }}"
-
-      - name: Debug - Print Format Check Result
-        run: echo "Format Check Result - ${{ needs.formatCheck.result }}"
-
       - name: Automatically merge PR
         uses: pascalgn/automerge-action@58724c982461efbb7865b3762d7bff0d4756f57a
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           MERGE_METHOD: "squash"
           MERGE_COMMIT_MESSAGE: "pull-request-title"
-          PULL_REQUEST: ${{ needs.createPR.outputs.pull_request_number }}
+          PULL_REQUEST: ${{ needs.createPR.outputs.pr_number }}
