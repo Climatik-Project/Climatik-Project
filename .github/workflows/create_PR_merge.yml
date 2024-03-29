@@ -44,7 +44,7 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           base: main
-          branch: auto-pr-${{ github.sha }}
+          branch: ${{ github.ref_name }}
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
           labels: automerge
@@ -90,6 +90,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
-        run: gh pr merge --merge --auto "1"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh pr merge --merge --auto ${{ needs.createPR.outputs.pr_number }}
