@@ -25,14 +25,14 @@ jobs:
 
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
         id: commit
         run: |
-          echo "::set-output name=title::$(git log -1 --pretty=%s)"
-          echo "::set-output name=message::$(git log -1 --pretty=%b)"
+          echo "title=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
+          echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
 
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
@@ -48,11 +48,9 @@ jobs:
     needs: createPR
     if: needs.createPR.outputs.pull_request_number
     runs-on: ubuntu-latest
-    outputs:
-      format_check_result: ${{ steps.format_check.outcome }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: refs/pull/${{ needs.createPR.outputs.pull_request_number }}/head
 
@@ -67,7 +65,6 @@ jobs:
           pip install flake8 pytest yapf
 
       - name: Check format with YAPF
-        id: format_check
         run: |
           STYLE="pep8"
           yapf --diff --recursive --style=$STYLE src || {
@@ -78,7 +75,7 @@ jobs:
 
   mergePR:
     needs: [createPR, formatCheck]
-    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.outputs.format_check_result == 'success'
+    if: needs.createPR.outputs.pull_request_number && needs.formatCheck.result == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
