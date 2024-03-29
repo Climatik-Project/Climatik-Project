@@ -44,7 +44,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh_pr_up() { gh pr create $* || gh pr edit $* }
+          gh_pr_up() { gh pr create "$@" || gh pr edit "$@"; }
           gh_pr_up --title "${{ steps.commit.outputs.title }}" \
                    --body "${{ steps.commit.outputs.message }}" \
                    --label automerge \
