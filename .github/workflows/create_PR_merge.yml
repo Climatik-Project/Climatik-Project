@@ -6,11 +6,15 @@ on:
       - '**'
       - '!main'
 
+permissions:
+  pull-requests: write
+  contents: write
+
 jobs:
   createPR:
     runs-on: ubuntu-latest
     outputs:
-      pr_number: ${{ steps.create_pr.outputs.pr_number }}
+      pr_number: ${{ steps.create_pr.outputs.pull-request-number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -37,13 +41,15 @@ jobs:
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
-        uses: repo-sync/pull-request@v2
+        uses: peter-evans/create-pull-request@v6
         with:
-          destination_branch: "main"
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          pr_title: "${{ steps.commit.outputs.title }}"
-          pr_body: "${{ steps.commit.outputs.message }}"
-          pr_label: "automerge"
+          base: main
+          branch: auto-pr-${{ github.sha }}
+          title: "${{ steps.commit.outputs.title }}"
+          body: "${{ steps.commit.outputs.message }}"
+          labels: automerge
+          author: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
+          committer: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
 
   formatCheck:
     needs: createPR
@@ -80,9 +86,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
-        uses: pascalgn/automerge-action@58724c982461efbb7865b3762d7bff0d4756f57a
+        run: gh pr merge --merge --auto "1"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          MERGE_METHOD: "squash"
-          MERGE_COMMIT_MESSAGE: "pull-request-title"
-          PULL_REQUEST: ${{ needs.createPR.outputs.pr_number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
