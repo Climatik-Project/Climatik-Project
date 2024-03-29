@@ -25,7 +25,7 @@ jobs:
 
       - name: Checkout code
         if: env.IS_TRUSTED == 'false'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Python
         if: env.IS_TRUSTED == 'false'
