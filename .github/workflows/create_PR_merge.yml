@@ -6,15 +6,11 @@ on:
       - '**'
       - '!main'
 
-permissions:
-  pull-requests: write
-  contents: write
-
 jobs:
   createPR:
     runs-on: ubuntu-latest
     outputs:
-      pr_number: ${{ steps.create_pr.outputs.pull_request_number }}
+      pr_number: ${{ steps.create_pr.outputs.pull-request-number }}
     steps:
       - name: Check if actor is trusted
         id: check_trusted
@@ -38,26 +34,18 @@ jobs:
           echo "title=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
           echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
 
-      - name: Create or Update Pull Request
+      - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          PR_URL=$(gh pr list --head "${{ github.ref_name }}" --base main --json url --jq '.[0].url')
-          if [[ -z "$PR_URL" ]]; then
-            # No existing PR found, create a new one
-            gh pr create --title "${{ steps.commit.outputs.title }}" \
-                         --body "${{ steps.commit.outputs.message }}" \
-                         --base main \
-                         --head "${{ github.ref_name }}" \
-                         --label automerge
-          else
-            # Existing PR found, add a label to it
-            PR_NUMBER=$(echo "$PR_URL" | grep -o '[^/]*$')
-            gh pr edit "$PR_NUMBER" --add-label automerge
-          fi
-          echo "pull_request_number=$(gh pr view --json number --jq .number)" >> $GITHUB_OUTPUT
+        uses: peter-evans/create-pull-request@v4
+        with:
+          base: main
+          branch: auto-pr-${{ github.sha }}
+          title: "${{ steps.commit.outputs.title }}"
+          body: "${{ steps.commit.outputs.message }}"
+          labels: automerge
+          author: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
+          committer: "${{ github.event.commits[0].author.name }} <${{ github.event.commits[0].author.email }}>"
 
   formatCheck:
     needs: createPR
@@ -94,7 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Automatically merge PR
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh pr merge ${{ needs.createPR.outputs.pr_number }} --squash
+        uses: peter-evans/enable-pull-request-automerge@v2
+        with:
+          pull-request-number: ${{ needs.createPR.outputs.pr_number }}
+          merge-method: squash
