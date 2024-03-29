@@ -43,6 +43,8 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
+          base: main # The branch you want to merge INTO
+          branch: "${{ github.head_ref }}"
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
           labels: automerge
