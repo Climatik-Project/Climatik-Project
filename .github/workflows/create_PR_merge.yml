@@ -30,8 +30,6 @@ jobs:
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
         uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref_name }}
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
@@ -43,7 +41,7 @@ jobs:
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v5
         with:
           base: main
           branch: auto-pr-${{ github.sha }}
