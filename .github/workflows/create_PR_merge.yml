@@ -43,7 +43,6 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
-          base: main
           branch: auto-pr-${{ github.sha }}
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
