@@ -31,7 +31,7 @@ jobs:
         if: env.IS_TRUSTED == 'true'
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref_name }}
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
@@ -45,7 +45,7 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
-          base: ${{ github.ref_name }}
+          base: main
           branch: auto-pr-${{ github.sha }}
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
