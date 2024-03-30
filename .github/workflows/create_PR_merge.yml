@@ -30,6 +30,8 @@ jobs:
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
@@ -43,7 +45,7 @@ jobs:
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
-          branch: auto-pr-${{ github.sha }}
+          branch: ${{ github.ref_name }}
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
           labels: automerge
