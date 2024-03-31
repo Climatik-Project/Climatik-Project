@@ -8,7 +8,7 @@ CRD) to specify the power capping limit. The operator will use [KEDA (Kubernetes
 LLM inference service deployment based on the specified power cap. [Kepler](https://github.com/sustainable-computing-io/kepler), a power monitoring tool, will be used to
 monitor the power consumption of CPU and GPU resources on the server.
 
-Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the motivations of this project.
+Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the motivations of this project. [Problem Statement](doc/designs/problem-statement.md) provides a detailed power performance optimization problem statement.
 
 ## 2. Architecture
 
