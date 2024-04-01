@@ -8,7 +8,7 @@ CRD) to specify the power capping limit. The operator will use [KEDA (Kubernetes
 LLM inference service deployment based on the specified power cap. [Kepler](https://github.com/sustainable-computing-io/kepler), a power monitoring tool, will be used to
 monitor the power consumption of CPU and GPU resources on the server.
 
-Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the motivations of this project.
+Please see [BENEFITS](doc/designs/BENEFITS.md) for a detailed description of the motivations of this project. [Problem Statement](doc/designs/problem-statement.md) provides a detailed power performance optimization problem statement.
 
 ## 2. Architecture
 
@@ -342,6 +342,127 @@ In this diagram:
 By integrating real-time carbon intensity into the power capping operator, we can dynamically adjust the power cap to
 achieve the target carbon capping. This allows for more environmentally-friendly operation of the system while still
 maintaining the desired performance characteristics.
+
+## 7.4 Kubernetes Vertical Pod Autoscaler (VPA) Integration
+
+In this integration, we leverage the Kubernetes Vertical Pod Autoscaler (VPA) to dynamically
+adjust the resource requirements of pods based on the workload demands and resource availability.
+VPA complements the horizontal scaling capabilities of KEDA by optimizing the resource allocation for each pod.
+
+### 7.4.1 VPA Configuration
+
+To enable VPA for the LLM inference workloads, we need to create a VPA resource that specifies the
+target deployments and the desired resource recommendations. Here's an example VPA configuration:
+
+```yaml
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: llm-inference-vpa
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: llm-inference-deployment
+  updatePolicy:
+    updateMode: "Auto"
+  resourcePolicy:
+    containerPolicies:
+      - containerName: "*"
+        minAllowed:
+          cpu: 100m
+          memory: 256Mi
+          nvidia.com/gpu: 1
+        maxAllowed:
+          cpu: 4
+          memory: 16Gi
+          nvidia.com/gpu: 8
+        controlledResources: ["cpu", "memory", "nvidia.com/gpu"]
+```
+
+In this configuration, we specify the target deployment (`llm-inference-deployment`) and define
+the resource policy for the containers. The `minAllowed` and `maxAllowed` fields set the minimum and maximum
+resource limits for CPU and memory. VPA will recommend resource adjustments within these boundaries based on
+the observed workload requirements.
+
+### 7.4.2 Integration with KEDA
+
+To integrate VPA with KEDA, we need to ensure that the resource recommendations made by VPA are considered during the scaling process. KEDA can be configured to use the VPA-recommended resource values when scaling the pods.
+
+Here's an example KEDA ScaledObject that incorporates VPA recommendations:
+
+```yaml
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: llm-inference-scaledobject
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llm-inference-deployment
+  pollingInterval: 15
+  cooldownPeriod: 30
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  advanced:
+    restoreToOriginalReplicaCount: true
+    verticalPodAutoscalerConfig:
+      behavior:
+        scaleDown:
+          stabilizationWindowSeconds: 60
+          policies:
+          - type: Percent
+            value: 100
+            periodSeconds: 15
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-server
+      metricName: average_token_per_second
+      threshold: 100
+```
+
+_NOTE: KEDA is still not supporting VPA, see [KEDA Issus #5435](https://github.com/kedacore/keda/issues/5435)_
+
+### 7.4.3 Resource Adjustment based on LLM Model Size
+
+VPA can be particularly useful when dealing with different LLM model sizes. Larger models may require more GPU/CPU resources,
+while smaller models can operate with fewer resources.
+VPA can automatically adjust the resource claims based on the model size and the observed resource utilization.
+
+For example, if a larger LLM model is deployed, VPA can increase the GPU/CPU resource claim to ensure optimal performance.
+Conversely, if a smaller model is used, VPA can reduce the GPU/CPU resource claim to avoid over-allocation and improve resource and
+power consumption efficiency.
+
+### 7.4.4 Handling GPU Resource Fragmentation
+
+In situations where the Kubernetes cluster experiences GPU resource fragmentation, VPA can help optimize the resource allocation. VPA can recommend adjusting the GPU/CPU resource claims of pods to fit the available GPU resources more efficiently.
+
+For instance, if a pod requires 2 GPUs but the cluster has fragmented GPU resources with 1 GPU available on multiple nodes, VPA can recommend reducing the GPU resource claim to 1 GPU per pod. This allows the pods to be scheduled on nodes with available GPU resources, thereby improving overall utilization and reducing fragmentation.
+
+### 7.4.5 Integration Diagram
+
+Here's a diagram illustrating the integration of VPA with KEDA and the power capping operator:
+
+```mermaid
+graph TD
+A[Power Capping Operator] --> B(KEDA)
+B --> C[VPA]
+C --> D[LLM Inference Deployment]
+D --> E[Prometheus]
+E --> A
+```
+
+In this diagram:
+
+1. The power capping operator interacts with KEDA to manage the scaling of the LLM inference deployment.
+2. KEDA integrates with VPA to obtain resource recommendations based on the workload requirements and resource availability.
+3. VPA analyzes the resource utilization of the LLM inference deployment and provides recommendations for resource adjustments.
+4. The LLM inference deployment is scaled and its resources are adjusted based on the recommendations from VPA and the scaling policies defined in KEDA.
+5. Prometheus monitors the LLM inference deployment and provides metrics to the power capping operator for decision-making.
+
+By integrating VPA with KEDA and the power capping operator, we can achieve more efficient resource utilization and improved performance for LLM inference workloads. VPA ensures that the pods are allocated the appropriate amount of resources based on the workload demands and resource availability, while KEDA handles the horizontal scaling of the pods. The power capping operator can then make informed decisions based on the resource utilization and power consumption metrics to maintain the desired power limits.
 
 ## 8. Power Capping Operator in Action
 

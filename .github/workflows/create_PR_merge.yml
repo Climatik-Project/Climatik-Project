@@ -41,6 +41,7 @@ jobs:
           echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
 
       - name: Reset working branch
+        if: env.IS_TRUSTED == 'true'
         run: |
           git fetch origin ${{ github.ref_name }}:${{ github.ref_name }}
           git reset --hard ${{ github.ref_name }}
