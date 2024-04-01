@@ -30,6 +30,8 @@ jobs:
       - name: Checkout code
         if: env.IS_TRUSTED == 'true'
         uses: actions/checkout@v4
+        with:
+          ref: main
 
       - name: Get last commit title and message
         if: env.IS_TRUSTED == 'true'
@@ -38,13 +40,18 @@ jobs:
           echo "title=$(git log -1 --pretty=%s)" >> $GITHUB_OUTPUT
           echo "message=$(git log -1 --pretty=%b)" >> $GITHUB_OUTPUT
 
+      - name: Reset working branch
+        run: |
+          git fetch origin ${{ github.ref_name }}:${{ github.ref_name }}
+          git reset --hard ${{ github.ref_name }}
+
       - name: Create Pull Request
         if: env.IS_TRUSTED == 'true'
         id: create_pr
         uses: peter-evans/create-pull-request@v6
         with:
-          base: ${{ github.ref_name }}
-          branch: main
+          base: main
+          branch: ${{ github.ref_name }}
           title: "${{ steps.commit.outputs.title }}"
           body: "${{ steps.commit.outputs.message }}"
           labels: automerge
@@ -89,6 +96,9 @@ jobs:
     if: needs.createPR.outputs.pr_number && needs.formatCheck.result == 'success'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
       - name: Automatically merge PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

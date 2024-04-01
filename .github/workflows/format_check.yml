@@ -9,7 +9,7 @@ on:
 
 jobs:
   formatCheck:
-    if: startsWith(github.ref, 'refs/heads/auto-pr-') == false
+    if: startsWith(github.ref, 'refs/heads/auto-pr-') == false && !contains(github.event.pull_request.labels.*.name, 'automerge')
     runs-on: ubuntu-latest
     steps:
       - name: Check if actor is trusted
