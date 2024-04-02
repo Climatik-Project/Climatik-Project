@@ -39,7 +39,7 @@ F -->|Provides Metrics| C
 ### 3.1 Functionality
 
 - Reads the power capping CRD to obtain the power capping limit and Prometheus parameters.
-- Configures the referenced KEDA `ScaleObject` to scale the LLM inference service deployment based on the power
+- Configures the referenced KEDA `ScaledObject` to scale the LLM inference service deployment based on the power
   consumption metrics provided by Kepler.
 - Continuously monitors the power consumption metrics and adjusts the scaling configuration if necessary.
 
@@ -55,11 +55,11 @@ spec:
   deploymentName: <llm_inference_service_deployment_name>
   scaleObjectRef:
     - apiVersion: keda.sh/v1alpha1
-      kind: ScaleObject
+      kind: ScaledObject
       metadata:
         name: <scale_object_name_1>
     - apiVersion: keda.sh/v1alpha1
-      kind: ScaleObject
+      kind: ScaledObject
       metadata:
         name: <scale_object_name_2>
   metrics:
@@ -91,24 +91,24 @@ spec:
 ### 7.1 KServe Integration
 
 This section demonstrates the integration of the power capping operator with KServe, a standardized Serverless ML
-Inference Platform on Kubernetes. KServe creates deployments for serving LLM inference and associated KEDA ScaleObjects.
+Inference Platform on Kubernetes. KServe creates deployments for serving LLM inference and associated KEDA ScaledObjects.
 The power capping operator then updates the CRD to manage the power capping configuration.
 
 ### 7.1.1 Integration Flow
 
 1. KServe creates a deployment for serving LLM inference.
-2. KServe creates an associated KEDA ScaleObject for the deployment.
-3. The power capping operator watches for changes in the KServe deployments and ScaleObjects.
-4. The power capping operator updates the PowerCappingConfig CRD with the ScaleObject references.
+2. KServe creates an associated KEDA ScaledObject for the deployment.
+3. The power capping operator watches for changes in the KServe deployments and ScaledObjects.
+4. The power capping operator updates the PowerCappingConfig CRD with the ScaledObject references.
 5. The power capping operator monitors the power consumption metrics and adjusts the scaling configuration for the new
-   ScaleObject if necessary.
+   ScaledObject if necessary.
 
 ### 7.1.2 Integration Diagram
 
 ```mermaid
 graph TD
 A[KServe] -->|Creates| B(LLM Inference Deployment)
-A -->|Creates| C(KEDA ScaleObject)
+A -->|Creates| C(KEDA ScaledObject)
 D[Power Capping Operator] -->|Watches| B
 D -->|Watches| C
 D -->|Updates| E(PowerCappingConfig CRD)
@@ -132,12 +132,12 @@ D -->|Adjusts| C
          name: llm-inference-service
    ```
 
-2. KServe creates an associated KEDA ScaleObject for the deployment.
+2. KServe creates an associated KEDA ScaledObject for the deployment.
    ```yaml
    apiVersion: keda.sh/v1alpha1
-   kind: ScaleObject
+   kind: ScaledObject
    metadata:
-     name: llm-inference-scaleobject
+     name: llm-inference-scaledobject
    spec:
      scaleTargetRef:
        apiVersion: apps/v1
@@ -156,9 +156,9 @@ D -->|Adjusts| C
            threshold: "500"
    ```
 
-3. The power capping operator watches for changes in the KServe deployments and ScaleObjects.
+3. The power capping operator watches for changes in the KServe deployments and ScaledObjects.
 
-4. The power capping operator updates the PowerCappingConfig CRD with the ScaleObject references.
+4. The power capping operator updates the PowerCappingConfig CRD with the ScaledObject references.
    ```yaml
    apiVersion: powercapping.climatik-project.ai/v1
    kind: PowerCappingConfig
@@ -168,15 +168,15 @@ D -->|Adjusts| C
      powerCapLimit: 1000
      scaleObjectRef:
        - apiVersion: keda.sh/v1alpha1
-         kind: ScaleObject
+         kind: ScaledObject
          metadata:
-           name: llm-inference-scaleobject
+           name: llm-inference-scaledobject
    ```
 
 5. The power capping operator monitors the power consumption metrics and adjusts the scaling configuration if necessary.
 
 This integration allows the power capping operator to seamlessly work with KServe deployments and manage their power
-capping configuration using KEDA ScaleObjects.
+capping configuration using KEDA ScaledObjects.
 
 ### 7.2 Integration with vLLM
 
@@ -185,7 +185,7 @@ provides an memory efficient and scalable solution for deploying and serving LLM
 
 ### 7.2.1 vLLM Deployment
 
-vLLM creates deployments for serving LLM inference. Each vLLM deployment is associated with a KEDA ScaleObject that
+vLLM creates deployments for serving LLM inference. Each vLLM deployment is associated with a KEDA ScaledObject that
 defines the scaling behavior based on the incoming workload.
 
 Here's an example of a vLLM deployment:
@@ -212,18 +212,18 @@ spec:
             - containerPort: 8000
 ```
 
-### 7.2.2 KEDA ScaleObject for vLLM
+### 7.2.2 KEDA ScaledObject for vLLM
 
-The KEDA ScaleObject associated with the vLLM deployment defines the scaling rules based on the incoming requests and
+The KEDA ScaledObject associated with the vLLM deployment defines the scaling rules based on the incoming requests and
 the desired target metrics.
 
-Here's an example of a KEDA ScaleObject for vLLM:
+Here's an example of a KEDA ScaledObject for vLLM:
 
 ```yaml
 apiVersion: keda.sh/v1alpha1
-kind: ScaleObject
+kind: ScaledObject
 metadata:
-  name: vllm-scaleobject
+  name: vllm-scaledobject
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
@@ -245,15 +245,15 @@ spec:
 ### 7.2.3 Power Capping Operator Integration
 
 The power capping operator integrates with vLLM deployments in the same way as it does with KServe. It watches for
-changes in the vLLM deployments and their associated KEDA ScaleObjects.
+changes in the vLLM deployments and their associated KEDA ScaledObjects.
 
 The power capping operator performs the following steps:
 
 1. Monitors the power consumption metrics from Kepler for the vLLM deployments.
-2. Retrieves the KEDA ScaleObject associated with each vLLM deployment.
-3. Adjusts the `maxReplicaCount` of the KEDA ScaleObject based on the power consumption metrics and the defined power
+2. Retrieves the KEDA ScaledObject associated with each vLLM deployment.
+3. Adjusts the `maxReplicaCount` of the KEDA ScaledObject based on the power consumption metrics and the defined power
    capping rules.
-4. Updates the KEDA ScaleObject to enforce the power capping limits.
+4. Updates the KEDA ScaledObject to enforce the power capping limits.
 
 The integration with vLLM ensures that the power capping operator can effectively manage the power consumption of vLLM
 deployments, similar to how it manages KServe deployments.
@@ -263,14 +263,14 @@ deployments, similar to how it manages KServe deployments.
 ```mermaid
 graph TD
 A[Power Capping Operator] -->|Monitors| B(vLLM Deployment)
-A -->|Monitors| C(KEDA ScaleObject)
+A -->|Monitors| C(KEDA ScaledObject)
 A -->|Adjusts maxReplicaCount| C
 C -->|Scales| B
 ```
 
-The diagram illustrates the integration flow between the power capping operator, vLLM deployment, and KEDA ScaleObject.
-The power capping operator monitors the vLLM deployment and its associated KEDA ScaleObject, adjusts
-the `maxReplicaCount` based on the power consumption metrics, and updates the KEDA ScaleObject to enforce the power
+The diagram illustrates the integration flow between the power capping operator, vLLM deployment, and KEDA ScaledObject.
+The power capping operator monitors the vLLM deployment and its associated KEDA ScaledObject, adjusts
+the `maxReplicaCount` based on the power consumption metrics, and updates the KEDA ScaledObject to enforce the power
 capping limits.
 
 By integrating with vLLM, the power capping operator extends its capabilities to manage the power consumption of LLM
@@ -346,7 +346,7 @@ maintaining the desired performance characteristics.
 ## 8. Power Capping Operator in Action
 
 This section illustrates how the power capping operator works in a real-world scenario. The operator continuously
-monitors the power consumption metrics provided by Kepler and makes adjustments to the KEDA ScaleObjects based on the
+monitors the power consumption metrics provided by Kepler and makes adjustments to the KEDA ScaledObjects based on the
 current power usage and the defined power cap limit.
 
 ### 8.1 Monitoring Power Usage
@@ -355,24 +355,24 @@ The power capping operator periodically retrieves the power consumption metrics 
 power being used by the LLM inference deployments at any given time. This power usage is then compared against the power
 cap limit specified in the PowerCappingConfig CRD.
 
-### 8.2 Adjusting KEDA ScaleObjects
+### 8.2 Adjusting KEDA ScaledObjects
 
 Based on the current power usage and the power cap limit, the power capping operator adjusts the `maxReplicaCount` of
-the KEDA ScaleObjects associated with the LLM inference deployments. The following scenarios describe how the operator
+the KEDA ScaledObjects associated with the LLM inference deployments. The following scenarios describe how the operator
 handles different power usage levels:
 
 1. Power usage below the power cap limit:
-    - If the current power usage is below the power cap limit, the operator makes no changes to the KEDA ScaleObjects.
+    - If the current power usage is below the power cap limit, the operator makes no changes to the KEDA ScaledObjects.
     - The LLM inference deployments can scale up or down based on their configured scaling rules.
 
 2. Power usage at 80% of the power cap limit:
     - If the current power usage reaches 80% of the power cap limit, the operator sets the `maxReplicaCount` of the KEDA
-      ScaleObjects to one above the current number of replicas.
+      ScaledObjects to one above the current number of replicas.
     - This allows for a small buffer for scaling up while preventing excessive power consumption.
 
 3. Power usage at 95% of the power cap limit:
     - If the current power usage reaches 95% of the power cap limit, the operator sets the `maxReplicaCount` of the KEDA
-      ScaleObjects to the current number of replicas.
+      ScaledObjects to the current number of replicas.
     - This prevents any further scaling up of the LLM inference deployments to ensure the power usage stays within the
       power cap limit.
 
@@ -382,7 +382,7 @@ handles different power usage levels:
 graph TD
 A[Power Capping Operator] -->|Monitors| B(Kepler Metrics)
 B -->|Power Usage| C{Check Power Usage}
-C -->|Below Power Cap| D[No Changes to ScaleObjects]
+C -->|Below Power Cap| D[No Changes to ScaledObjects]
 C -->|80% of Power Cap| E[Set maxReplicaCount to Current Replicas + 1]
 C -->|95% of Power Cap| F[Set maxReplicaCount to Current Replicas]
 ```
@@ -394,15 +394,15 @@ usage:
 
 2. The operator checks the power usage against the power cap limit.
 
-3. If the power usage is below the power cap limit, no changes are made to the KEDA ScaleObjects.
+3. If the power usage is below the power cap limit, no changes are made to the KEDA ScaledObjects.
 
 4. If the power usage reaches 80% of the power cap limit, the operator sets the `maxReplicaCount` of the KEDA
-   ScaleObjects to one above the current number of replicas.
+   ScaledObjects to one above the current number of replicas.
 
 5. If the power usage reaches 95% of the power cap limit, the operator sets the `maxReplicaCount` of the KEDA
-   ScaleObjects to the current number of replicas.
+   ScaledObjects to the current number of replicas.
 
-By continuously monitoring the power usage and adjusting the KEDA ScaleObjects accordingly, the power capping operator
+By continuously monitoring the power usage and adjusting the KEDA ScaledObjects accordingly, the power capping operator
 ensures that the LLM inference deployments operate within the defined power cap limit. This prevents excessive power
 consumption and helps maintain the overall stability and efficiency of the data center.
 
@@ -449,7 +449,7 @@ the LLM inference system.
 #### 9.1.3 Power Capping Operator Enhancement
 
 The power capping operator can be enhanced to consider the token/watts metric when adjusting the `maxReplicaCount` of
-the KEDA ScaleObjects associated with the LLM inference deployments.
+the KEDA ScaledObjects associated with the LLM inference deployments.
 
 The enhanced power capping operator performs the following steps:
 
@@ -457,7 +457,7 @@ The enhanced power capping operator performs the following steps:
 2. Identifies the LLM inference deployments with higher token/watts ratios.
 3. Prioritizes the deployments with higher token/watts ratios by allowing a higher number of maximum replicas compared
    to less efficient deployments.
-4. Adjusts the `maxReplicaCount` of the KEDA ScaleObjects based on the power usage and the priority assigned to each
+4. Adjusts the `maxReplicaCount` of the KEDA ScaledObjects based on the power usage and the priority assigned to each
    deployment.
 
 By selectively allowing a higher number of replicas for more power-efficient deployments, the power capping operator
@@ -483,7 +483,7 @@ The flowchart above illustrates the power efficiency aware LLM inference routing
 4. The LLM prompt is routed to the selected LLM inference service for processing.
 5. The power capping operator monitors the power consumption metrics and token/watts metrics.
 6. It prioritizes the deployments with higher token/watts ratios.
-7. The operator adjusts the `maxReplicaCount` of the KEDA ScaleObjects based on the power usage and the assigned
+7. The operator adjusts the `maxReplicaCount` of the KEDA ScaledObjects based on the power usage and the assigned
    priorities.
 
 By incorporating power efficiency aware routing and enhancing the power capping operator, the LLM inference system can
@@ -523,7 +523,7 @@ The power capping operator performs the following steps:
 2. Analyzes the metrics to determine if GPU frequency tuning is required.
 3. Triggers the GPU frequency tuning job with the necessary parameters and configurations.
 4. Waits for the job to complete and receives the updated GPU frequency settings.
-5. Updates the `maxReplicaCount` of the KEDA ScaleObjects based on the new GPU frequency settings and the power cap
+5. Updates the `maxReplicaCount` of the KEDA ScaledObjects based on the new GPU frequency settings and the power cap
    limit.
 
 By integrating the GPU frequency tuning job with the power capping operator, the LLM inference system can dynamically
@@ -539,7 +539,7 @@ A -->|Triggers| D[GPU Frequency Tuning Job]
 D -->|Retrieves Metrics| B
 D -->|Retrieves Metrics| C
 D -->|Calculates Optimal Frequency| E[Apply GPU Frequency Settings]
-A -->|Updates maxReplicaCount| G[KEDA ScaleObjects]
+A -->|Updates maxReplicaCount| G[KEDA ScaledObjects]
 ```
 
 The flowchart above illustrates the GPU frequency tuning enhancement:
@@ -548,7 +548,7 @@ The flowchart above illustrates the GPU frequency tuning enhancement:
 2. It analyzes the metrics to determine if GPU frequency tuning is required.
 3. The operator triggers the GPU frequency tuning job with the necessary parameters.
 4. The GPU frequency tuning job retrieves the metrics and calculates the optimal GPU frequency settings.
-5. The power capping operator updates the `maxReplicaCount` of the KEDA ScaleObjects based on the updated GPU frequency
+5. The power capping operator updates the `maxReplicaCount` of the KEDA ScaledObjects based on the updated GPU frequency
    settings and the power cap limit.
 
 By incorporating GPU frequency tuning, the LLM inference system can further optimize its power efficiency and
