@@ -92,7 +92,9 @@ def monitor_power_usage(spec, status, **kwargs):
     current_replicas = {}
     power_consumptions = {}
 
-    api_instance = kubernetes.client.CustomObjectsApi()
+    crd_api_instance = kubernetes.client.CustomObjectsApi()
+    # get api instance for kubernetes to get the deployment object
+    api_instance = kubernetes.client.AppsV1Api()
 
     for scale_object_ref in scale_object_refs:
         api_version = scale_object_ref['apiVersion']
@@ -100,7 +102,7 @@ def monitor_power_usage(spec, status, **kwargs):
         name = scale_object_ref['metadata']['name']
 
         # Retrieve the KEDA ScaledObject
-        scaled_object = api_instance.get_namespaced_custom_object(
+        scaled_object = crd_api_instance.get_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -109,8 +111,6 @@ def monitor_power_usage(spec, status, **kwargs):
 
         deployment_name = scaled_object['spec']['scaleTargetRef']['name']
 
-        # get api instance for kubernetes to get the deployment object
-        api_instance = kubernetes.client.AppsV1Api()
         # Retrieve the current number of replicas from the deployment
         deployment = api_instance.read_namespaced_deployment(
             namespace=kwargs['namespace'], name=deployment_name)
@@ -126,7 +126,7 @@ def monitor_power_usage(spec, status, **kwargs):
     logging.info(f"Power consumption: {power_consumptions}")
     logging.info(f"Current replicas: {current_replicas}")
     total_power_consumption = sum(power_consumptions.values())
-    if int(power_consumptions) > 0:
+    if total_power_consumption > 0:
         updated_max_replicas = power_capping_strategy.calculate_max_replicas(
             current_replicas, power_consumptions, power_cap_limit)
 
@@ -137,7 +137,7 @@ def monitor_power_usage(spec, status, **kwargs):
         name = scale_object_ref['metadata']['name']
 
         # Retrieve the KEDA ScaledObject
-        scaled_object = api_instance.get_namespaced_custom_object(
+        scaled_object = crd_api_instance.get_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -151,7 +151,7 @@ def monitor_power_usage(spec, status, **kwargs):
         scaled_object['spec']['maxReplicaCount'] = max_replicas
 
         # Update the ScaledObject in the Kubernetes cluster
-        api_instance.patch_namespaced_custom_object(
+        crd_api_instance.patch_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -177,9 +177,8 @@ def monitor_power_usage(spec, status, **kwargs):
                                                   forecast_power)
 
     # Update the status with the current and forecast power consumption
-    status['currentPowerConsumption'] = sum(power_consumptions.values())
-    status['forecastPowerConsumption'] = sum(
-        forecast_power_consumption.values())
+    # status['currentPowerConsumption'] = sum(power_consumptions.values())
+    #status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
 
 
 def calculate_max_replicas(power_cap_limit):
@@ -199,14 +198,16 @@ def get_current_replica_from_scale_object(api_instance, namespace,
 
 def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
-    query = f'sum(rate(kepler_container_joules_total{{pod_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
-
+    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
+    logging.debug(f"Power consumption query: {query}")
     # Execute the Prometheus query
     result = prom.custom_query(query=query)
-    logging.info(f"Power consumption query result: {result}")
+    logging.debug(f"Power consumption query result: {result}")
     # Extract the power consumption value from the query result
     power_consumption = 0
     if result:
+        # the result is in this format: [{'metric': {}, 'value': [1712173496.726, '0.26666666666666666']}]
+        # retrieve the value from the result
         power_consumption = float(result[0]['value'][1])
 
     return power_consumption
