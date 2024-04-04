@@ -1,0 +1,12 @@
+apiVersion: powercapping.climatik-project.ai/v1alpha1
+kind: PowerCappingConfig
+metadata:
+  labels:
+    app.kubernetes.io/name: powercappingconfig
+    app.kubernetes.io/instance: powercappingconfig-sample
+    app.kubernetes.io/part-of: operator-powercapping
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator-powercapping
+  name: powercappingconfig-sample
+spec:
+  # TODO(user): Add fields here
