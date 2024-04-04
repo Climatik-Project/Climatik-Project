@@ -7,6 +7,8 @@
 *.dll
 *.so
 *.dylib
+bin/*
+Dockerfile.cross
 
 # Test binary, built with `go test -c`
 *.test
@@ -16,6 +18,13 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+
+
+# Go workspace file
+go.work
+
+# Kubernetes Generated files - skip generated files, except for vendored files
+!vendor/**/zz_generated.*
 
 # Go workspace file
 go.work

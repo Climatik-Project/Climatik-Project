@@ -1,0 +1,27 @@
+# permissions for end users to view powercappingconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: powercappingconfig-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator-powercapping
+    app.kubernetes.io/part-of: operator-powercapping
+    app.kubernetes.io/managed-by: kustomize
+  name: powercappingconfig-viewer-role
+rules:
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs/status
+  verbs:
+  - get

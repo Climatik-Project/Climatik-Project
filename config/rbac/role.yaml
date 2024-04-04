@@ -1,0 +1,32 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs/status
+  verbs:
+  - get
+  - patch
+  - update

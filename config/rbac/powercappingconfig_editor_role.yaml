@@ -1,0 +1,31 @@
+# permissions for end users to edit powercappingconfigs.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: powercappingconfig-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator-powercapping
+    app.kubernetes.io/part-of: operator-powercapping
+    app.kubernetes.io/managed-by: kustomize
+  name: powercappingconfig-editor-role
+rules:
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - powercapping.climatik-project.ai
+  resources:
+  - powercappingconfigs/status
+  verbs:
+  - get
