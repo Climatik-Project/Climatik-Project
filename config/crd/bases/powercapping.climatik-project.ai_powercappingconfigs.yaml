@@ -33,15 +33,50 @@ spec:
           metadata:
             type: object
           spec:
-            description: PowerCappingConfigSpec defines the desired state of PowerCappingConfig
+            description: PowerCappingConfigSpec is the spec for a PowerCappingConfig
+              resource
             properties:
-              foo:
-                description: Foo is an example field of PowerCappingConfig. Edit powercappingconfig_types.go
-                  to remove/update
-                type: string
+              powerCapLimit:
+                type: integer
+              scaledObjectRefs:
+                items:
+                  description: ScaledObject represents a reference to a KEDA scaled
+                    object
+                  properties:
+                    apiVersion:
+                      type: string
+                    kind:
+                      type: string
+                    metadata:
+                      description: ScaledObjectMeta contains metadata for a KEDA scaled
+                        object
+                      properties:
+                        name:
+                          type: string
+                        namespace:
+                          type: string
+                      required:
+                      - name
+                      - namespace
+                      type: object
+                  required:
+                  - apiVersion
+                  - kind
+                  - metadata
+                  type: object
+                type: array
+            required:
+            - powerCapLimit
+            - scaledObjectRefs
             type: object
           status:
-            description: PowerCappingConfigStatus defines the observed state of PowerCappingConfig
+            description: PowerCappingConfigStatus is the status for a PowerCappingConfig
+              resource
+            properties:
+              currentPowerConsumption:
+                type: integer
+              forecastPowerConsumption:
+                type: integer
             type: object
         type: object
     served: true
