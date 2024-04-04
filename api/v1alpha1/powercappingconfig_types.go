@@ -20,22 +20,39 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// PowerCappingConfigSpec defines the desired state of PowerCappingConfig
+// PowerCappingConfigSpec is the spec for a PowerCappingConfig resource
 type PowerCappingConfigSpec struct {
-	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
-
-	// Foo is an example field of PowerCappingConfig. Edit powercappingconfig_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	PowerCapLimit    int             `json:"powerCapLimit"`
+	ScaledObjectRefs []ScaledObject  `json:"scaledObjectRefs"`
 }
 
-// PowerCappingConfigStatus defines the observed state of PowerCappingConfig
+// ScaledObjectMeta contains metadata for a KEDA scaled object
+type ScaledObjectMeta struct {
+	// +required
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=63
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+
+// ScaledObject represents a reference to a KEDA scaled object
+type ScaledObject struct {
+	// +required
+	// +kubebuilder:validation:Required
+	// +kubebuilder:validation:MinLength=1
+	// +kubebuilder:validation:MaxLength=63
+	APIVersion string            `json:"apiVersion"`
+	Kind       string            `json:"kind"`
+	Metadata   ScaledObjectMeta  `json:"metadata"`
+}
+
+
+// PowerCappingConfigStatus is the status for a PowerCappingConfig resource
 type PowerCappingConfigStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	CurrentPowerConsumption int `json:"currentPowerConsumption,omitempty"`
+	ForecastPowerConsumption int `json:"forecastPowerConsumption,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -56,9 +73,9 @@ type PowerCappingConfig struct {
 type PowerCappingConfigList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
-	Items           []PowerCappingConfig `json:"items"`
-}
 
+	Items []PowerCappingConfig `json:"items"`
+}
 func init() {
 	SchemeBuilder.Register(&PowerCappingConfig{}, &PowerCappingConfigList{})
 }
