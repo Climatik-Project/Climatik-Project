@@ -2,7 +2,7 @@
 
 ## Leadership Election
 
-Qualified new maintainers are approved via consensus by the group of existing maintainers. 
+Qualified new maintainers are approved via consensus by the group of existing maintainers.
 
 ## Technical Committee
 
@@ -18,9 +18,10 @@ The current list of technical committee members is published and updated in [Con
 
 ### Becoming a Technical Committee Member
 
-Proficient in one or more of the following areas: 
+Proficient in one or more of the following areas:
+
 * Developing and maintaining core code base
-* Developing and maintaining ecosystem integration 
+* Developing and maintaining ecosystem integration
 * Developing and maintaining test suites and CI infrastructure
 * Maintaining documentation.
 
@@ -35,12 +36,13 @@ Responsibilities include:
 * Contribute non-trivial pull requests
 * Actively attend the community meetings
 * Perform code reviews on other's pull requests
-* Regularly triage GitHub issues. 
+* Regularly triage GitHub issues.
 * Make sure that ongoing PRs are moving forward at the right pace or closing them
 
 # Advisory Committee
 
 Advisory committee provides guidance for the overall direction, including but not limited to:
+
 * Project roadmap
 * Project governance
 * Research guidance
