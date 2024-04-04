@@ -23,7 +23,7 @@ class TestPowerCappingOperator(unittest.TestCase):
         spec = {
             'powerCapLimit':
             1000,
-            'scaleObjectRefs': [{
+            'scaledObjectRefs': [{
                 'apiVersion': 'keda.sh/v1alpha1',
                 'kind': 'ScaledObject',
                 'metadata': {

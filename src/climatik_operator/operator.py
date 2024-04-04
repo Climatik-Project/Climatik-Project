@@ -1,10 +1,11 @@
 import kopf
+import logging
 import kubernetes
 import os
 from jsonschema import validate, ValidationError
-from .crd import POWER_CAPPING_CONFIG_SCHEMA
-from .strategies import get_power_capping_strategy
-from .prom_metrics import PowerCappingMetrics
+from crd import POWER_CAPPING_CONFIG_SCHEMA
+from strategies import get_power_capping_strategy
+from prom_metrics import PowerCappingMetrics
 
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
@@ -48,7 +49,7 @@ def create_power_capping_config(spec, **kwargs):
 
     # Retrieve the power capping configuration from the custom resource
     power_cap_limit = spec.get('powerCapLimit')
-    scale_object_refs = spec.get('scaleObjectRefs', [])
+    scale_object_refs = spec.get('scaledObjectRefs', [])
 
     # Iterate over the ScaleObjectRefs and update the KEDA ScaleObjects
     for scale_object_ref in scale_object_refs:
@@ -67,6 +68,7 @@ def create_power_capping_config(spec, **kwargs):
 
         # Update the ScaleObject with the power capping configuration
         max_replicas = calculate_max_replicas(power_cap_limit)
+        logging.info(f"Max replicas for {name}: {max_replicas}")
         scale_object['spec']['maxReplicaCount'] = max_replicas
 
         # Update the ScaleObject in the Kubernetes cluster
@@ -85,12 +87,14 @@ def create_power_capping_config(spec, **kwargs):
             interval=60.0)
 def monitor_power_usage(spec, status, **kwargs):
     power_cap_limit = spec.get('powerCapLimit')
-    scale_object_refs = spec.get('scaleObjectRefs', [])
+    scale_object_refs = spec.get('scaledObjectRefs', [])
 
     current_replicas = {}
     power_consumptions = {}
 
-    api_instance = kubernetes.client.CustomObjectsApi()
+    crd_api_instance = kubernetes.client.CustomObjectsApi()
+    # get api instance for kubernetes to get the deployment object
+    api_instance = kubernetes.client.AppsV1Api()
 
     for scale_object_ref in scale_object_refs:
         api_version = scale_object_ref['apiVersion']
@@ -98,7 +102,7 @@ def monitor_power_usage(spec, status, **kwargs):
         name = scale_object_ref['metadata']['name']
 
         # Retrieve the KEDA ScaledObject
-        scaled_object = api_instance.get_namespaced_custom_object(
+        scaled_object = crd_api_instance.get_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -118,8 +122,13 @@ def monitor_power_usage(spec, status, **kwargs):
         power_consumptions[deployment_name] = power_consumption
 
     # Calculate the updated maxReplicas for each deployment based on the selected strategy
-    updated_max_replicas = power_capping_strategy.calculate_max_replicas(
-        current_replicas, power_consumptions, power_cap_limit)
+    # log the power consumption and current replicas
+    logging.info(f"Power consumption: {power_consumptions}")
+    logging.info(f"Current replicas: {current_replicas}")
+    total_power_consumption = sum(power_consumptions.values())
+    if total_power_consumption > 0:
+        updated_max_replicas = power_capping_strategy.calculate_max_replicas(
+            current_replicas, power_consumptions, power_cap_limit)
 
     # Update the maxReplicaCount for each ScaledObject
     for scale_object_ref in scale_object_refs:
@@ -128,7 +137,7 @@ def monitor_power_usage(spec, status, **kwargs):
         name = scale_object_ref['metadata']['name']
 
         # Retrieve the KEDA ScaledObject
-        scaled_object = api_instance.get_namespaced_custom_object(
+        scaled_object = crd_api_instance.get_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -142,7 +151,7 @@ def monitor_power_usage(spec, status, **kwargs):
         scaled_object['spec']['maxReplicaCount'] = max_replicas
 
         # Update the ScaledObject in the Kubernetes cluster
-        api_instance.patch_namespaced_custom_object(
+        crd_api_instance.patch_namespaced_custom_object(
             group=api_version.split('/')[0],
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
@@ -168,9 +177,8 @@ def monitor_power_usage(spec, status, **kwargs):
                                                   forecast_power)
 
     # Update the status with the current and forecast power consumption
-    status['currentPowerConsumption'] = sum(power_consumptions.values())
-    status['forecastPowerConsumption'] = sum(
-        forecast_power_consumption.values())
+    # status['currentPowerConsumption'] = sum(power_consumptions.values())
+    #status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
 
 
 def calculate_max_replicas(power_cap_limit):
@@ -190,14 +198,16 @@ def get_current_replica_from_scale_object(api_instance, namespace,
 
 def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
-    query = f'sum(rate(kepler_container_joules_total{{pod_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
-
+    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
+    logging.debug(f"Power consumption query: {query}")
     # Execute the Prometheus query
     result = prom.custom_query(query=query)
-
+    logging.debug(f"Power consumption query result: {result}")
     # Extract the power consumption value from the query result
     power_consumption = 0
     if result:
+        # the result is in this format: [{'metric': {}, 'value': [1712173496.726, '0.26666666666666666']}]
+        # retrieve the value from the result
         power_consumption = float(result[0]['value'][1])
 
     return power_consumption

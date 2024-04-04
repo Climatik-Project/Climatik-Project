@@ -6,7 +6,7 @@ POWER_CAPPING_CONFIG_SCHEMA = {
             "type": "integer",
             "minimum": 0
         },
-        "scaleObjectRefs": {
+        "scaledObjectRefs": {
             "type": "array",
             "items": {
                 "type": "object",
@@ -31,5 +31,5 @@ POWER_CAPPING_CONFIG_SCHEMA = {
             }
         }
     },
-    "required": ["powerCapLimit", "scaleObjectRefs"]
+    "required": ["powerCapLimit", "scaledObjectRefs"]
 }
