@@ -18,7 +18,7 @@ spec:
                 powerCapLimit:
                   type: integer
                   minimum: 0
-                scaleObjectRefs:
+                scaledObjectRefs:
                   type: array
                   items:
                     type: object
@@ -32,15 +32,18 @@ spec:
                         properties:
                           name:
                             type: string
+                          namespace:
+                            type: string
                         required:
                           - name
+                          - namespace
                     required:
                       - apiVersion
                       - kind
                       - metadata
               required:
                 - powerCapLimit
-                - scaleObjectRefs
+                - scaledObjectRefs
             status:
               type: object
               properties:

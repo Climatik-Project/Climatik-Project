@@ -4,9 +4,9 @@ metadata:
   name: llm-example-powercappingconfig
 spec:
   powerCapLimit: 1000
-  scaleObjectRefs:
+  scaledObjectRefs:
     - apiVersion: keda.sh/v1alpha1
-      kind: ScaleObject
+      kind: ScaledObject
       metadata:
         name: mistral-7b-scaleobject
     - apiVersion: keda.sh/v1alpha1

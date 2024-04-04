@@ -6,8 +6,8 @@ class PowerCappingMetrics:
     def __init__(self, port=8000):
         self.port = port
         self.scale_objects_gauge = Gauge(
-            'power_capping_scale_objects',
-            'Number of ScaleObjects in the PowerCappingConfig CRD')
+            'power_capping_scaled_objects',
+            'Number of ScaledObjects in the PowerCappingConfig CRD')
         self.replicas_gauge = Gauge('power_capping_replicas',
                                     'Number of replicas in each deployment',
                                     ['deployment'])
