@@ -20,11 +20,10 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-
 // PowerCappingConfigSpec is the spec for a PowerCappingConfig resource
 type PowerCappingConfigSpec struct {
-	PowerCapLimit    int             `json:"powerCapLimit"`
-	ScaledObjectRefs []ScaledObject  `json:"scaledObjectRefs"`
+	PowerCapLimit    int            `json:"powerCapLimit"`
+	ScaledObjectRefs []ScaledObject `json:"scaledObjectRefs"`
 }
 
 // ScaledObjectMeta contains metadata for a KEDA scaled object
@@ -43,15 +42,14 @@ type ScaledObject struct {
 	// +kubebuilder:validation:Required
 	// +kubebuilder:validation:MinLength=1
 	// +kubebuilder:validation:MaxLength=63
-	APIVersion string            `json:"apiVersion"`
-	Kind       string            `json:"kind"`
-	Metadata   ScaledObjectMeta  `json:"metadata"`
+	APIVersion string           `json:"apiVersion"`
+	Kind       string           `json:"kind"`
+	Metadata   ScaledObjectMeta `json:"metadata"`
 }
-
 
 // PowerCappingConfigStatus is the status for a PowerCappingConfig resource
 type PowerCappingConfigStatus struct {
-	CurrentPowerConsumption int `json:"currentPowerConsumption,omitempty"`
+	CurrentPowerConsumption  int `json:"currentPowerConsumption,omitempty"`
 	ForecastPowerConsumption int `json:"forecastPowerConsumption,omitempty"`
 }
 
@@ -76,6 +74,7 @@ type PowerCappingConfigList struct {
 
 	Items []PowerCappingConfig `json:"items"`
 }
+
 func init() {
 	SchemeBuilder.Register(&PowerCappingConfig{}, &PowerCappingConfigList{})
 }

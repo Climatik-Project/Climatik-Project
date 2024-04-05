@@ -44,6 +44,8 @@ spec:
                     object
                   properties:
                     apiVersion:
+                      maxLength: 63
+                      minLength: 1
                       type: string
                     kind:
                       type: string
@@ -52,6 +54,8 @@ spec:
                         object
                       properties:
                         name:
+                          maxLength: 63
+                          minLength: 1
                           type: string
                         namespace:
                           type: string
