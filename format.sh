@@ -12,7 +12,7 @@ STYLE="pep8"
 
 # Find all Python files in the current directory and its subdirectories,
 # and run YAPF on them to format them in place with the specified style.
-find src -type f -name "*.py"  -exec yapf --in-place --style=$STYLE "{}" +
+find python -type f -name "*.py"  -exec yapf --in-place --style=$STYLE "{}" +
 
 echo "All Python files have been formatted with YAPF using the $STYLE style."
 

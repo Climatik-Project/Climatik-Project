@@ -43,8 +43,8 @@ jobs:
         if: env.IS_TRUSTED == 'false'
         run: |
           STYLE="pep8"
-          yapf --diff --recursive --style=$STYLE src || {
-            echo "Some Python files do not conform to the $STYLE style."
+          yapf --diff --recursive --style=$STYLE python || {
+            echo "Some Python files in python directory do not conform to the $STYLE style."
             echo "Please run YAPF on your changes with the $STYLE style and update the PR."
             exit 1
           }
