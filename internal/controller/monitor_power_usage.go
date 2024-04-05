@@ -82,7 +82,7 @@ func (r *PowerCappingConfigReconciler) monitorPowerUsage(ctx context.Context, po
 					log.Error(err, "Failed to get ScaledObject")
 					continue
 				}
-			
+
 				currentReplicas, err := r.getCurrentReplicas(ctx, powerCappingConfig.Namespace, scaledObject)
 				if err != nil {
 					log.Error(err, "Failed to get current replicas")
@@ -110,7 +110,7 @@ func (r *PowerCappingConfigReconciler) monitorPowerUsage(ctx context.Context, po
 					log.Error(err, "Failed to get ScaledObject")
 					continue
 				}
-			
+
 				currentReplicas, err := r.getCurrentReplicas(ctx, powerCappingConfig.Namespace, scaledObject)
 				if err != nil {
 					log.Error(err, "Failed to get current replicas")
