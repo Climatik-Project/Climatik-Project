@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package planner;
+
+option go_package = "https://github.com/Climatik-Project/Climatik-Project/pkg/planner";
+
+service Planner {
+  rpc CalculateOptimalReplicas(CalculateOptimalReplicasRequest) returns (CalculateOptimalReplicasResponse) {}
+}
+
+message CalculateOptimalReplicasRequest {
+  repeated Deployment deployments = 1;
+  double powerCap = 2;
+}
+
+message Deployment {
+  string name = 1;
+  string namespace = 2;
+}
+
+message CalculateOptimalReplicasResponse {
+  repeated DeploymentReplicas deploymentReplicas = 1;
+}
+
+message DeploymentReplicas {
+  string name = 1;
+  string namespace = 2;
+  int32 optimalReplicas = 3;
+}
