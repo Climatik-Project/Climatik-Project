@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package planner;
 
-option go_package = "https://github.com/Climatik-Project/Climatik-Project/pkg/planner";
+option go_package = "https://github.com/Climatik-Project/Climatik-Project/internal/planner";
 
 service Planner {
   rpc CalculateOptimalReplicas(CalculateOptimalReplicasRequest) returns (CalculateOptimalReplicasResponse) {}

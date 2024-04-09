@@ -148,9 +148,3 @@ func (r *PowerCappingConfigReconciler) getCurrentReplicas(ctx context.Context, d
 
 	return *deployment.Spec.Replicas, nil
 }
-
-func calculateMaxReplicas(powerCapLimit int) int {
-	// Implement the logic to calculate the maximum replicas based on the power cap limit
-	// This is just a placeholder, replace it gRPC communication with the Planner service
-	return powerCapLimit / 100
-}
