@@ -23,6 +23,7 @@ import (
 	kedav1alpha1 "github.com/kedacore/keda/v2/apis/keda/v1alpha1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -62,6 +63,8 @@ func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.R
 	scaledObjectRefs := powerCappingConfig.Spec.ScaledObjectRefs
 
 	// Iterate over the ScaledObjectRefs and update the KEDA ScaledObjects
+	deploymentName := []string{}
+	deploymentNamespace := []string{}
 	for _, scaledObjectRef := range scaledObjectRefs {
 		scaledObject := &kedav1alpha1.ScaledObject{}
 		err := r.Get(ctx, client.ObjectKey{Namespace: req.Namespace, Name: scaledObjectRef.Metadata.Name}, scaledObject)
@@ -73,10 +76,18 @@ func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.R
 			log.Error(err, "Failed to get ScaledObject")
 			return ctrl.Result{}, err
 		}
+		// from each ScaledObject get the deployment name and namespace and add to the name and namespace arrays
+		deploymentName = append(deploymentName, scaledObject.Spec.ScaleTargetRef.Name)
+		deploymentNamespace = append(deploymentNamespace, req.Namespace)
 
 		// Update the ScaledObject with the power capping configuration
-		maxReplicas := int32(calculateMaxReplicas(powerCapLimit))
-		scaledObject.Spec.MaxReplicaCount = &maxReplicas
+		maxReplicas, err := calculateOptimalReplicas(deploymentName, deploymentNamespace, powerCapLimit)
+		if err != nil {
+			log.Error(err, "Failed to calculate optimal replicas")
+			return ctrl.Result{}, err
+		}
+
+		log.Info("Optimal replicas", "maxReplicas", maxReplicas)
 
 		// Update the ScaledObject in the Kubernetes cluster
 		err = r.Update(ctx, scaledObject)
