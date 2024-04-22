@@ -22,8 +22,6 @@ This surge in power demand is complicating efforts to transition to cleaner ener
 
 Nvidia's new Blackwell GPUs mark a significant step forward in addressing datacenter power constraints amidst the global energy crisis. These GPUs boast power ratings up to 1,200W with unprecedented efficiency gains—about 1.7x higher than their predecessor Hopper and 3.2x that of Ampere. Despite their high power consumption, they offer increased performance per watt across various metrics. However, the substantial power and cooling requirements necessitate advanced cooling solutions like liquid cooling to manage the high density and thermal outputs effectively.
 
-The Forrester Wave™: AI Infrastructure Solutions, Q1 2024
-
 ## [AWS resource restrictions point to datacenter power issues](https://www.theregister.com/2024/04/09/aws_resource_restrictions/?td=rt-3a)
 AWS is facing power limitations for its datacenters in Ireland, prompting the company to direct customers to other European regions for resource-intensive operations. In Ireland, datacenters consumed 31% more power from 2021 to 2022, accounting for 18% of the country's total electricity usage. This figure is projected to rise, potentially reaching 32% by 2026. As a result, AWS cannot deploy certain high-power resources, like GPU nodes, in its Dublin facilities due to these power constraints. The power crisis affects not only AWS but other datacenters across Europe and beyond.
 
