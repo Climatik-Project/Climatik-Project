@@ -25,7 +25,7 @@ Nvidia's new Blackwell GPUs mark a significant step forward in addressing datace
 ## [AWS resource restrictions point to datacenter power issues](https://www.theregister.com/2024/04/09/aws_resource_restrictions/?td=rt-3a)
 AWS is facing power limitations for its datacenters in Ireland, prompting the company to direct customers to other European regions for resource-intensive operations. In Ireland, datacenters consumed 31% more power from 2021 to 2022, accounting for 18% of the country's total electricity usage. This figure is projected to rise, potentially reaching 32% by 2026. As a result, AWS cannot deploy certain high-power resources, like GPU nodes, in its Dublin facilities due to these power constraints. The power crisis affects not only AWS but other datacenters across Europe and beyond.
 
-Arm CEO warns AI's power appetite could devour 25% of US electricity by 2030
+## [Arm CEO warns AI's power appetite could devour 25% of US electricity by 2030](https://www.wsj.com/tech/ai/artificial-intelligences-insatiable-energy-needs-not-sustainable-arm-ceo-says-a11218c9?mod=hp_lead_pos10)
 The article highlights concerns over the increasing electricity consumption by AI datacenters, potentially consuming up to 25% of the U.S. power grid by 2030. Currently, AI datacenters use about 4% of U.S. electricity. This surge is largely attributed to power-intensive large language models like ChatGPT. The International Energy Agency predicts that global power consumption for AI datacenters could be ten times higher than in 2022. This could pose serious sustainability challenges unless efficiency improvements are made, even as some datacenters look towards alternative energy sources like nuclear power to manage their increasing power needs.
 
 
