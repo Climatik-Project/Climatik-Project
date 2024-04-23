@@ -1,4 +1,9 @@
 # News
+## [Salesforce Calls for AI Emissions Regulations as Concerns Grow Over Tech Sector’s Carbon Footprint](https://www.wsj.com/articles/salesforce-calls-for-ai-emissions-regulations-as-concerns-grow-over-tech-sectors-carbon-footprint-dc9c016f?mod=tech_lead_pos4)
+
+Salesforce is advocating for stricter environmental regulations on AI, emphasizing the need for transparency in emissions and energy usage associated with AI operations. The company suggests that all entities using general-purpose AI models should disclose their carbon footprint using standardized metrics. Concerns about AI's sustainability are highlighted by projections that AI energy consumption could triple, reaching 4.5% of total power generation. Notably, legislative efforts led by Senator Ed Markey aim to establish standards for assessing AI's environmental impacts, suggesting a path toward mitigating these concerns through more informed development and usage of AI technologies.
+
+
 ## [A Way for Energy Investors to Ride the AI Boom - WSJ](https://www.wsj.com/finance/investing/a-way-for-energy-investors-to-ride-the-ai-boom-bb0a607d?mod=hp_listc_pos2)
 
 "McKinsey, BCG and S&P Global Commodity Insights all project electricity demand tied to data centers to increase at a compound annual growth rate of between 13% and 15% through 2030. PJM Interconnection, whose jurisdiction includes data center-heavy Virginia, expects total electricity demand to grow at an annual rate of 2.4% over the next 10 years, up from its year-ago forecast of 1.4%. 
