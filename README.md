@@ -101,10 +101,10 @@ optimization goals, such as energy capping or efficiency.
 
 ## 6. Documentation
 
-- [Architecture](docs/architecture.md)
-- [CRD Documentation](docs/crd.md)
-- [Integration with Kubernetes Tools](docs/integrations.md)
-- [Custom Algorithms Marketplace](docs/marketplace.md)
+- [Architecture](doc/architecture.md)
+- [CRD Documentation](doc/crd.md)
+- [Integration with Kubernetes Tools](doc/integrations.md)
+- [Custom Algorithms Marketplace](doc/marketplace.md)
 
 ## 7. Contributing
 
