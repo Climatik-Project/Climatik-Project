@@ -33,45 +33,16 @@ spec:
           metadata:
             type: object
           spec:
-            description: PowerCappingConfigSpec is the spec for a PowerCappingConfig
-              resource
+            description: PowerCappingConfigSpec defines the desired state of PowerCappingConfig
             properties:
-              powerCapLimit:
+              efficiencyLevel:
+                type: string
+              powerCapWatts:
                 type: integer
-              scaledObjectRefs:
-                items:
-                  description: ScaledObject represents a reference to a KEDA scaled
-                    object
-                  properties:
-                    apiVersion:
-                      maxLength: 63
-                      minLength: 1
-                      type: string
-                    kind:
-                      type: string
-                    metadata:
-                      description: ScaledObjectMeta contains metadata for a KEDA scaled
-                        object
-                      properties:
-                        name:
-                          maxLength: 63
-                          minLength: 1
-                          type: string
-                        namespace:
-                          type: string
-                      required:
-                      - name
-                      - namespace
-                      type: object
-                  required:
-                  - apiVersion
-                  - kind
-                  - metadata
-                  type: object
-                type: array
-            required:
-            - powerCapLimit
-            - scaledObjectRefs
+              temperatureThresholdCelsius:
+                type: integer
+              workloadType:
+                type: string
             type: object
           status:
             description: PowerCappingConfigStatus is the status for a PowerCappingConfig

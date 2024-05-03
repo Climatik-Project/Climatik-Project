@@ -20,31 +20,12 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// PowerCappingConfigSpec is the spec for a PowerCappingConfig resource
+// PowerCappingConfigSpec defines the desired state of PowerCappingConfig
 type PowerCappingConfigSpec struct {
-	PowerCapLimit    int            `json:"powerCapLimit"`
-	ScaledObjectRefs []ScaledObject `json:"scaledObjectRefs"`
-}
-
-// ScaledObjectMeta contains metadata for a KEDA scaled object
-type ScaledObjectMeta struct {
-	// +required
-	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=63
-	Name      string `json:"name"`
-	Namespace string `json:"namespace"`
-}
-
-// ScaledObject represents a reference to a KEDA scaled object
-type ScaledObject struct {
-	// +required
-	// +kubebuilder:validation:Required
-	// +kubebuilder:validation:MinLength=1
-	// +kubebuilder:validation:MaxLength=63
-	APIVersion string           `json:"apiVersion"`
-	Kind       string           `json:"kind"`
-	Metadata   ScaledObjectMeta `json:"metadata"`
+	WorkloadType                string `json:"workloadType,omitempty"`                // "training" or "inference"
+	EfficiencyLevel             string `json:"efficiencyLevel,omitempty"`             // "low", "medium", "high"
+	PowerCapWatts               int    `json:"powerCapWatts,omitempty"`               // Power cap in watts
+	TemperatureThresholdCelsius int    `json:"temperatureThresholdCelsius,omitempty"` // Temperature threshold in Celsius
 }
 
 // PowerCappingConfigStatus is the status for a PowerCappingConfig resource
