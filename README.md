@@ -74,9 +74,9 @@ To install the power capping operator, follow these steps:
 
 2. Install the necessary CRDs and operators:
    ```bash
-   cd power-capped-llm-inference
-   kubectl apply -f deploy/crds/
-   kubectl apply -f deploy/operator/
+   cd Climatik-Project/deploy/climatik-operator/manifests
+   kubectl apply -f crd.yaml
+   kubectl apply -f deployment.yaml
    ```
 
 3. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
