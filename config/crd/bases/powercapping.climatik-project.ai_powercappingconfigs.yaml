@@ -37,10 +37,42 @@ spec:
             properties:
               efficiencyLevel:
                 type: string
-              powerCapWatts:
-                type: integer
-              temperatureThresholdCelsius:
-                type: integer
+              powerCappingSpec:
+                description: PowerCappingSpec specifies the kind of PowerCappingConfig
+                properties:
+                  absolutePowerCapInWatts:
+                    properties:
+                      powerCapInWatts:
+                        type: integer
+                    type: object
+                  kind:
+                    type: string
+                  relativePowerCapInPercentage:
+                    properties:
+                      powerCapPercentage:
+                        type: integer
+                      sampleWindow:
+                        type: integer
+                    type: object
+                type: object
+              temperatureThresholdSpec:
+                description: TemperatureThresholdSpec specifies the kind of TemperatureThresholdConfig
+                properties:
+                  absoluteTemperatureThresholdInCelsius:
+                    properties:
+                      temperatureThresholdInCelsius:
+                        type: integer
+                    type: object
+                  kind:
+                    type: string
+                  relativeTemperatureThresholdInPercentage:
+                    properties:
+                      sampleWindow:
+                        type: integer
+                      temperatureThresholdPercentage:
+                        type: integer
+                    type: object
+                type: object
               workloadType:
                 type: string
             type: object
