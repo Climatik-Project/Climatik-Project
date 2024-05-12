@@ -20,12 +20,62 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type PowerCappingSpecKind string
+
+const (
+	NoPowerCappingSpec                                        PowerCappingSpecKind = "NoPowerCappingSpec"
+	AbsolutePowerCapInWatts                                   PowerCappingSpecKind = "AbsolutePowerCapInWatts"
+	RelativePowerCapOfPeakPowerConsumptionInPercentage        PowerCappingSpecKind = "RelativePowerCapOfPeakPowerConsumptionInPercentage"
+	RelativePowerCappingOfAveragePowerConsumptionInPercentage PowerCappingSpecKind = "RelativePowerCappingOfAveragePowerConsumptionInPercentage"
+)
+
+type AbsolutePowerCapInWattsSpec struct {
+	PowerCapInWatts int `json:"powerCapInWatts,omitempty"`
+}
+
+type RelativePowerCapInPercentageSpec struct {
+	PowerCapPercentage int `json:"powerCapPercentage,omitempty"` // Power cap in percentage of peak power consumption
+	SampleWindow       int `json:"sampleWindow,omitempty"`       // Sample window in seconds
+}
+
+// PowerCappingSpec specifies the kind of PowerCappingConfig
+type PowerCappingSpec struct {
+	Kind                             PowerCappingSpecKind `json:"kind,omitempty"`
+	AbsolutePowerCapInWattsSpec      `json:"absolutePowerCapInWatts,omitempty"`
+	RelativePowerCapInPercentageSpec `json:"relativePowerCapInPercentage,omitempty"`
+}
+
+type TemperatureThresholdKind string
+
+const (
+	NoTemperatureThreshold                                       TemperatureThresholdKind = "NoTemperatureThreshold"
+	AbsoluteTemperatureThresholdInCelsius                        TemperatureThresholdKind = "AbsoluteTemperatureThresholdInCelsius"
+	RelativeTemperatureThresholdOfPeakTemperatureInPercentage    TemperatureThresholdKind = "RelativeTemperatureThresholdOfPeakTemperatureInPercentage"
+	RelativeTemperatureThresholdOfAverageTemperatureInPercentage TemperatureThresholdKind = "RelativeTemperatureThresholdOfAverageTemperatureInPercentage"
+)
+
+type AbsoluteTemperatureThresholdInCelsiusSpec struct {
+	TemperatureThresholdInCelsius int `json:"temperatureThresholdInCelsius,omitempty"`
+}
+
+type RelativeTemperatureThresholdInPercentageSpec struct {
+	TemperatureThresholdPercentage int `json:"temperatureThresholdPercentage,omitempty"` // Temperature threshold in percentage of peak temperature
+	SampleWindow                   int `json:"sampleWindow,omitempty"`                   // Sample window in seconds
+}
+
+// TemperatureThresholdSpec specifies the kind of TemperatureThresholdConfig
+type TemperatureThresholdSpec struct {
+	Kind                                         TemperatureThresholdKind `json:"kind,omitempty"`
+	AbsoluteTemperatureThresholdInCelsiusSpec    `json:"absoluteTemperatureThresholdInCelsius,omitempty"`
+	RelativeTemperatureThresholdInPercentageSpec `json:"relativeTemperatureThresholdInPercentage,omitempty"`
+}
+
 // PowerCappingConfigSpec defines the desired state of PowerCappingConfig
 type PowerCappingConfigSpec struct {
-	WorkloadType                string `json:"workloadType,omitempty"`                // "training" or "inference"
-	EfficiencyLevel             string `json:"efficiencyLevel,omitempty"`             // "low", "medium", "high"
-	PowerCapWatts               int    `json:"powerCapWatts,omitempty"`               // Power cap in watts
-	TemperatureThresholdCelsius int    `json:"temperatureThresholdCelsius,omitempty"` // Temperature threshold in Celsius
+	WorkloadType             string                   `json:"workloadType,omitempty"`             // "training" or "inference"
+	EfficiencyLevel          string                   `json:"efficiencyLevel,omitempty"`          // "low", "medium", "high"
+	PowerCappingSpec         PowerCappingSpec         `json:"powerCappingSpec,omitempty"`         // Power capping specification
+	TemperatureThresholdSpec TemperatureThresholdSpec `json:"temperatureThresholdSpec,omitempty"` // Temperature threshold specification
 }
 
 // PowerCappingConfigStatus is the status for a PowerCappingConfig resource
