@@ -73,8 +73,8 @@ func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.R
 	}
 
 	// Monitor power usage
-	go r.monitorPowerUsage(ctx, powerCappingConfig)
 
+	go r.monitorPowerUsage(ctx, powerCappingConfig)
 	return ctrl.Result{}, nil
 }
 
@@ -150,10 +150,10 @@ func (r *PowerCappingConfigReconciler) handlePodDelete(obj interface{}) {
 
 func (r *PowerCappingConfigReconciler) handlePodWithGPU(pod *corev1.Pod, powerCapLabel string) {
 	// Get device info from the device plugin
-	deviceInfo := getDeviceInfo(pod)
+	deviceInfo := r.getDeviceInfo(pod)
 
 	// Monitor GPU power consumption and temperature
-	powerConsumption, temperature := monitorGPU(deviceInfo)
+	powerConsumption, temperature := r.monitorGPU(deviceInfo)
 
 	// Determine power cap percentage based on label
 	powerCapPercentage := 0
@@ -173,32 +173,11 @@ func (r *PowerCappingConfigReconciler) handlePodWithGPU(pod *corev1.Pod, powerCa
 	powerCap := int(float64(powerConsumption) * float64(powerCapPercentage) / 100)
 
 	// Set GPU power cap
-	err := setGPUPowerCap(deviceInfo, powerCap)
+	err := r.setGPUPowerCap(deviceInfo, powerCap)
 	if err != nil {
 		r.Log.Error(err, "Failed to set GPU power cap")
 		return
 	}
 
 	r.Log.Info("Power capping applied", "pod", pod.Name, "label", powerCapLabel, "powerCap", powerCap, "temperature", temperature)
-}
-
-func getDeviceInfo(pod *corev1.Pod) interface{} {
-	// Dummy implementation for getDeviceInfo
-	deviceInfo := map[string]string{
-		"gpu-1": "nvidia-gpu-1",
-		"gpu-2": "nvidia-gpu-2",
-	}
-	return deviceInfo
-}
-
-func setGPUPowerCap(deviceInfo interface{}, powerCap int) error {
-	// Dummy implementation for setGPUPowerCap
-	return nil
-}
-
-func monitorGPU(deviceInfo interface{}) (int, float64) {
-	// Dummy implementation for monitorGPU
-	powerConsumption := 250
-	temperature := 80.5
-	return powerConsumption, temperature
 }
