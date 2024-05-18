@@ -13,4 +13,4 @@ The meeting is open to everyone, and we encourage you to join us.
 - **Date**: Every 2 weeks on Mon, until Dec 16, 2024, 20 occurrence(s). Please download and import the [iCalendar (.ics)](https://us06web.zoom.us/meeting/tZUkc-Cspj8qE9VtQ9hvie5NvcMwbdCAJPMI/ics?icsToken=98tyKuGppz8jHtyRsBCGRpwcHY-gXejxiClfj_priC68CzZaZ1bYIOFvJbB7M_n6) files to your calendar system.
 
 # Slack Channel
-[CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf) Channel: #climatik
+[CNCF Slack](https://communityinviter.com/apps/cloud-native/cncf) Channel: #climatik-project

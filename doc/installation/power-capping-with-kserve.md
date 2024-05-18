@@ -45,12 +45,12 @@ git clone https://github.com/Climatik-Project/Climatik-Project
 
 2. Navigate to the chart directory:
 ```
-cd Climatik-Project/deploy/climatik-operator/helm-chart
+cd Climatik-Project/deploy/climatik-operator/helm-chart/power-capping-operator
 ```
 
 3. Install the power capping operator using Helm:
 ```
-helm install --namespace power-capping-operator power-capping-operator .
+helm install --create-namespace --namespace power-capping-operator power-capping-operator .
 ```
 
 4. Verify that the power capping operator is running:

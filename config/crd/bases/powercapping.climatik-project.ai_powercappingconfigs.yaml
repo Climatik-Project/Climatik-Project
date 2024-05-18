@@ -33,45 +33,48 @@ spec:
           metadata:
             type: object
           spec:
-            description: PowerCappingConfigSpec is the spec for a PowerCappingConfig
-              resource
+            description: PowerCappingConfigSpec defines the desired state of PowerCappingConfig
             properties:
-              powerCapLimit:
-                type: integer
-              scaledObjectRefs:
-                items:
-                  description: ScaledObject represents a reference to a KEDA scaled
-                    object
-                  properties:
-                    apiVersion:
-                      maxLength: 63
-                      minLength: 1
-                      type: string
-                    kind:
-                      type: string
-                    metadata:
-                      description: ScaledObjectMeta contains metadata for a KEDA scaled
-                        object
-                      properties:
-                        name:
-                          maxLength: 63
-                          minLength: 1
-                          type: string
-                        namespace:
-                          type: string
-                      required:
-                      - name
-                      - namespace
-                      type: object
-                  required:
-                  - apiVersion
-                  - kind
-                  - metadata
-                  type: object
-                type: array
-            required:
-            - powerCapLimit
-            - scaledObjectRefs
+              efficiencyLevel:
+                type: string
+              powerCappingSpec:
+                description: PowerCappingSpec specifies the kind of PowerCappingConfig
+                properties:
+                  absolutePowerCapInWatts:
+                    properties:
+                      powerCapInWatts:
+                        type: integer
+                    type: object
+                  kind:
+                    type: string
+                  relativePowerCapInPercentage:
+                    properties:
+                      powerCapPercentage:
+                        type: integer
+                      sampleWindow:
+                        type: integer
+                    type: object
+                type: object
+              temperatureThresholdSpec:
+                description: TemperatureThresholdSpec specifies the kind of TemperatureThresholdConfig
+                properties:
+                  absoluteTemperatureThresholdInCelsius:
+                    properties:
+                      temperatureThresholdInCelsius:
+                        type: integer
+                    type: object
+                  kind:
+                    type: string
+                  relativeTemperatureThresholdInPercentage:
+                    properties:
+                      sampleWindow:
+                        type: integer
+                      temperatureThresholdPercentage:
+                        type: integer
+                    type: object
+                type: object
+              workloadType:
+                type: string
             type: object
           status:
             description: PowerCappingConfigStatus is the status for a PowerCappingConfig
