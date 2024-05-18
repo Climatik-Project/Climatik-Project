@@ -12,14 +12,11 @@ from prometheus_api_client import PrometheusConnect
 
 # obtain prometheus host and power usage ratios from environment variables
 prom_host = os.getenv('PROMETHEUS_HOST')
+if not prom_host:
+    raise ValueError("PROMETHEUS_HOST environment variable is not set")
 high_power_usage_ratio = float(os.getenv('HIGH_POWER_USAGE_RATIO', '0.95'))
 moderate_power_usage_ratio = float(
     os.getenv('MODERATE_POWER_USAGE_RATIO', '0.8'))
-
-# obtain prometheus host from environment variable
-prom_host = os.getenv('PROMETHEUS_HOST')
-if not prom_host:
-    raise ValueError("PROMETHEUS_HOST environment variable is not set")
 
 # Obtain the selected power capping strategy from an environment variable
 selected_strategy = os.getenv('POWER_CAPPING_STRATEGY', 'maximize_replicas')
