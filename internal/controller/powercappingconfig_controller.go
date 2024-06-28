@@ -165,12 +165,24 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 	if !ok {
 		return
 	}
-
-	// Check if the pod has the powercapping label
 	powerCapLabel := pod.Labels[labelKey]
 	if powerCapLabel != "" {
-		// add the pod to the list of pods to monitor
-		r.getPodDevices(pod, powerCapLabel)
+		go func() {
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+
+			window := time.Duration(60) * time.Second // Replace with the actual observation window from the CRD
+			peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, window)
+			if err != nil {
+				r.Log.Error(err, "Failed to watch pod power usage")
+				return
+			}
+
+			powerCapPercentage := getPowerCapPercentage(powerCapLabel)
+			powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
+			deviceLabels := r.getPodDevices(pod)
+			r.createPrometheusAlert(pod, int(powerCap), deviceLabels)
+		}()
 	}
 }
 
@@ -178,35 +190,18 @@ func (r *PowerCappingConfigReconciler) handlePodDelete(obj interface{}) {
 	// Handle pod deletion if needed
 }
 
-func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod, powerCapLabel string) {
+func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string]string {
 	devices := make(map[string]string, 2)
 	ctx := context.Background()
-	powerConsumption := float64(0)
 	for _, v := range []string{"package", "gpu"} {
-		powerConsumptionDevice, label, err := r.getKeplerMetrics(ctx, pod.Name, v)
+		_, label, err := r.getKeplerMetrics(ctx, pod.Name, v)
 		if err != nil {
 			r.Log.Error(err, "Failed to get Kepler metrics")
-			return
+			return devices
 		}
 		devices[v] = label
-		powerConsumption += powerConsumptionDevice
 	}
-
-	powerCapPercentage := 0
-	switch powerCapLabel {
-	case "high":
-		powerCapPercentage = defaultPowerCapHigh
-	case "medium":
-		powerCapPercentage = defaultPowerCapMedium
-	case "low":
-		powerCapPercentage = defaultPowerCapLow
-	default:
-		r.Log.Info("Invalid power cap label", "label", powerCapLabel)
-		return
-	}
-
-	powerCap := int(float64(powerConsumption) * float64(powerCapPercentage) / 100)
-	r.createPrometheusAlert(pod, powerCap, devices)
+	return devices
 }
 
 func (r *PowerCappingConfigReconciler) createPrometheusAlert(pod *corev1.Pod, powerCap int, deviceLabels map[string]string) error {
@@ -280,4 +275,61 @@ func getEnv(key, fallback string) string {
 		value = fallback
 	}
 	return value
+}
+
+func (r *PowerCappingConfigReconciler) watchPodPowerUsage(ctx context.Context, podName string, window time.Duration) (float64, error) {
+	ticker := time.NewTicker(time.Second * window)
+	defer ticker.Stop()
+
+	peakPower := float64(0)
+
+	for {
+		select {
+		case <-ctx.Done():
+			return peakPower, nil
+		case <-ticker.C:
+			currentPower, err := r.queryPodPeakPower(ctx, podName)
+			if err != nil {
+				return 0, err
+			}
+			if currentPower > peakPower {
+				peakPower = currentPower
+			}
+		}
+	}
+}
+
+func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, podName string) (float64, error) {
+	query := fmt.Sprintf(`max(rate(kepler_container_joules_total{pod='%s'}[1m]))`, podName)
+	result, warnings, err := r.PrometheusClient.Query(ctx, query, time.Now())
+	if err != nil {
+		return 0, err
+	}
+	if len(warnings) > 0 {
+		r.Log.Info("Prometheus query warnings", "warnings", warnings)
+	}
+	if result.Type() == model.ValVector {
+		vector := result.(model.Vector)
+		if len(vector) > 0 {
+			return float64(vector[0].Value), nil
+		}
+	}
+	return 0, fmt.Errorf("no data returned from Prometheus query")
+}
+
+func (r *PowerCappingConfigReconciler) calculatePowerCap(peakPower float64, powerCapPercentage int) float64 {
+	return peakPower * float64(powerCapPercentage) / 100
+}
+
+func getPowerCapPercentage(label string) int {
+	switch label {
+	case "high":
+		return defaultPowerCapHigh
+	case "medium":
+		return defaultPowerCapMedium
+	case "low":
+		return defaultPowerCapLow
+	default:
+		return 0
+	}
 }
