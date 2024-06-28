@@ -21,6 +21,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-logr/logr"
@@ -44,11 +45,14 @@ import (
 
 const (
 	labelKey              = "powercapping.climatik.io"
-	Prom_URL              = "http://prometheus:9090"
-	AlertmanagerURL       = "http://alertmanager:9093/api/v1/alerts"
 	defaultPowerCapHigh   = 90
 	defaultPowerCapMedium = 80
 	defaultPowerCapLow    = 50
+)
+
+var (
+	PrometheusURL   = getEnv("PROM_URL", "http://prometheus:9090")
+	AlertmanagerURL = getEnv("ALERTMANAGER_URL", "http://alertmanager:9093/api/v1/alerts")
 )
 
 // PowerCappingConfigReconciler reconciles a PowerCappingConfig object
@@ -120,7 +124,7 @@ func (r *PowerCappingConfigReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		return fmt.Errorf("failed to wait for caches to sync")
 	}
 	promClient, err := prom_api.NewClient(prom_api.Config{
-		Address: Prom_URL,
+		Address: PrometheusURL,
 	})
 	if err != nil {
 		return err
@@ -268,4 +272,12 @@ func (r *PowerCappingConfigReconciler) sendAlertToPrometheus(alert string) error
 	}
 
 	return nil
+}
+
+func getEnv(key, fallback string) string {
+	value := os.Getenv(key)
+	if value == "" {
+		value = fallback
+	}
+	return value
 }
