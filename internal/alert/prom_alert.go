@@ -11,17 +11,13 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
-var (
-	AlertmanagerURL = getEnv("ALERTMANAGER_URL", "http://alertmanager:9093/api/v1/alerts")
-)
-
 type PrometheusAlert struct {
 	Labels      map[string]string `json:"labels"`
 	Annotations map[string]string `json:"annotations"`
 	StartsAt    time.Time         `json:"startsAt"`
 }
 
-func sendAlertToPrometheus(alert string) error {
+func sendAlertToPrometheus(alert, alertmanagerURL string) error {
 	alertStruct := PrometheusAlert{
 		Labels: map[string]string{
 			"alertname": "PowerCappingAlert",
@@ -39,7 +35,7 @@ func sendAlertToPrometheus(alert string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", AlertmanagerURL, bytes.NewBuffer(alertBody))
+	req, err := http.NewRequest("POST", alertmanagerURL, bytes.NewBuffer(alertBody))
 	if err != nil {
 		return err
 	}
@@ -60,7 +56,8 @@ func sendAlertToPrometheus(alert string) error {
 }
 
 type PrometheusAlertManager struct {
-	client v1.API
+	client          v1.API
+	alertmanagerURL string
 }
 
 func NewPrometheusAlertManager(prometheusAddress string) (*PrometheusAlertManager, error) {
@@ -69,7 +66,8 @@ func NewPrometheusAlertManager(prometheusAddress string) (*PrometheusAlertManage
 		return nil, err
 	}
 	return &PrometheusAlertManager{
-		client: v1.NewAPI(client),
+		client:          v1.NewAPI(client),
+		alertmanagerURL: prometheusAddress + "/api/v1/alerts",
 	}, nil
 }
 
@@ -88,7 +86,7 @@ func (p *PrometheusAlertManager) CreateAlert(podName string, powerCap int, devic
 		device = "%s"
     }`, podName, powerCap, podName, powerCap, device)
 
-	err := sendAlertToPrometheus(alert)
+	err := sendAlertToPrometheus(alert, p.alertmanagerURL)
 
 	return err
 }

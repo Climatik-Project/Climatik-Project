@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
+	"github.com/Climatik-Project/Climatik-Project/internal/alert"
 	"github.com/Climatik-Project/Climatik-Project/internal/controller"
 	//+kubebuilder:scaffold:imports
 )
@@ -121,10 +122,15 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
+	alertManager, err := alert.NewAlertManager(alert.Prometheus, map[string]string{})
+	if err != nil {
+		setupLog.Error(err, "unable to create alert manager")
+		os.Exit(1)
+	}
 	if err = (&controller.PowerCappingConfigReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:       mgr.GetClient(),
+		Scheme:       mgr.GetScheme(),
+		AlertManager: alertManager,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerCappingConfig")
 		os.Exit(1)
