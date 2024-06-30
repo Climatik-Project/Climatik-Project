@@ -16,11 +16,8 @@ limitations under the License.
 package controller
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"time"
 
@@ -32,7 +29,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 
-	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/kubernetes"
@@ -41,6 +37,9 @@ import (
 	prom_api "github.com/prometheus/client_golang/api"
 	prom_v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
+
+	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
+	"github.com/Climatik-Project/Climatik-Project/internal/alert"
 )
 
 const (
@@ -62,6 +61,7 @@ type PowerCappingConfigReconciler struct {
 	Log              logr.Logger
 	PodInformer      cache.SharedIndexInformer
 	PrometheusClient prom_v1.API
+	AlertManager     alert.AlertManager
 }
 
 //+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs,verbs=get;list;watch;create;update;patch;delete
@@ -181,7 +181,7 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 			powerCapPercentage := getPowerCapPercentage(powerCapLabel)
 			powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
 			deviceLabels := r.getPodDevices(pod)
-			r.createPrometheusAlert(pod, int(powerCap), deviceLabels)
+			r.createAlert(pod, int(powerCap), deviceLabels)
 		}()
 	}
 }
@@ -204,69 +204,8 @@ func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string
 	return devices
 }
 
-func (r *PowerCappingConfigReconciler) createPrometheusAlert(pod *corev1.Pod, powerCap int, deviceLabels map[string]string) error {
-	device := ""
-	for k, label := range deviceLabels {
-		device += k + ":" + label + ","
-	}
-	alert := fmt.Sprintf(`ALERT PowerCappingAlert
-    IF rate(kepler_container_joules_total{pod='%s'}) > %d
-    FOR 5m
-    LABELS { severity="critical" }
-    ANNOTATIONS {
-        summary = "Power capping alert for pod %s",
-        description = "The pod is exceeding the power cap of %d watts."
-		device = "%s"
-    }`, pod.Name, powerCap, pod.Name, powerCap, device)
-
-	r.Log.Info("Creating Prometheus alert", "alert", alert)
-	err := r.sendAlertToPrometheus(alert)
-
-	return err
-}
-
-type PrometheusAlert struct {
-	Labels      map[string]string `json:"labels"`
-	Annotations map[string]string `json:"annotations"`
-	StartsAt    time.Time         `json:"startsAt"`
-}
-
-func (r *PowerCappingConfigReconciler) sendAlertToPrometheus(alert string) error {
-	alertStruct := PrometheusAlert{
-		Labels: map[string]string{
-			"alertname": "PowerCappingAlert",
-			"severity":  "critical",
-		},
-		Annotations: map[string]string{
-			"summary":     "Power capping alert",
-			"description": alert,
-		},
-		StartsAt: time.Now(),
-	}
-
-	alertBody, err := json.Marshal([]PrometheusAlert{alertStruct})
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest("POST", AlertmanagerURL, bytes.NewBuffer(alertBody))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("failed to send alert to Prometheus Alertmanager: %s", resp.Status)
-	}
-
-	return nil
+func (r *PowerCappingConfigReconciler) createAlert(pod *corev1.Pod, powerCap int, deviceLabels map[string]string) error {
+	return r.AlertManager.CreateAlert(pod.Name, powerCap, deviceLabels)
 }
 
 func getEnv(key, fallback string) string {
