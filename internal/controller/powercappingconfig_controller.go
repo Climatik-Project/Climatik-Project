@@ -38,6 +38,7 @@ import (
 	prom_v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
 
+	"github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	"github.com/Climatik-Project/Climatik-Project/internal/alert"
 )
@@ -50,8 +51,7 @@ const (
 )
 
 var (
-	PrometheusURL   = getEnv("PROM_URL", "http://prometheus:9090")
-	AlertmanagerURL = getEnv("ALERTMANAGER_URL", "http://alertmanager:9093/api/v1/alerts")
+	PrometheusURL = getEnv("PROM_URL", "http://prometheus:9090")
 )
 
 // PowerCappingConfigReconciler reconciles a PowerCappingConfig object
@@ -167,12 +167,38 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 	}
 	powerCapLabel := pod.Labels[labelKey]
 	if powerCapLabel != "" {
+		// retrieve power cap crd using the label
+		// calculate power cap based on the peak power usage
+		obj := r.Get(context.Background(), client.ObjectKey{
+			Name:      powerCapLabel,
+			Namespace: pod.Namespace,
+		}, &powercappingv1alpha1.PowerCappingConfig{})
+		if obj != nil {
+			r.Log.Error(obj, "Failed to get PowerCappingConfig")
+			return
+		}
+		powerCappingConfig, ok := obj.(*powercappingv1alpha1.PowerCappingConfig)
+		if !ok {
+			r.Log.Error(fmt.Errorf("Failed to cast PowerCappingConfig"), "Failed to cast PowerCappingConfig")
+			return
+		}
+
+		r.Log.Info("PowerCappingConfig", "powerCapLabel", powerCapLabel)
+		// fetch the observation window from the CRD
+		// watch the pod power usage for the observation window
+		duration := time.Duration(60) * time.Second
+		switch powerCappingConfig.Spec.Kind {
+			case v1alpha1.RelativePowerCapOfPeakPowerConsumptionInPercentage:
+				r.Log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
+				duration = time.Duration(powerCappingConfig.Spec.ObservationWindowSeconds) * time.Second
+			}
+		}
+
 		go func() {
 			ctx, cancel := context.WithCancel(context.Background())
 			defer cancel()
 
-			window := time.Duration(60) * time.Second // Replace with the actual observation window from the CRD
-			peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, window)
+			peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
 			if err != nil {
 				r.Log.Error(err, "Failed to watch pod power usage")
 				return
@@ -239,7 +265,7 @@ func (r *PowerCappingConfigReconciler) watchPodPowerUsage(ctx context.Context, p
 }
 
 func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, podName string) (float64, error) {
-	query := fmt.Sprintf(`max(rate(kepler_container_joules_total{pod='%s'}[1m]))`, podName)
+	query := fmt.Sprintf(`max_over_time(rate(kepler_container_joules_total{pod='%s'}[1m]))`, podName)
 	result, warnings, err := r.PrometheusClient.Query(ctx, query, time.Now())
 	if err != nil {
 		return 0, err
