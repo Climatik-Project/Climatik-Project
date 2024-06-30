@@ -165,6 +165,7 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 	if !ok {
 		return
 	}
+	duration := time.Duration(60) * time.Second
 	powerCapLabel := pod.Labels[labelKey]
 	if powerCapLabel != "" {
 		// retrieve power cap crd using the label
@@ -186,30 +187,28 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 		r.Log.Info("PowerCappingConfig", "powerCapLabel", powerCapLabel)
 		// fetch the observation window from the CRD
 		// watch the pod power usage for the observation window
-		duration := time.Duration(60) * time.Second
-		switch powerCappingConfig.Spec.Kind {
-			case v1alpha1.RelativePowerCapOfPeakPowerConsumptionInPercentage:
-				r.Log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
-				duration = time.Duration(powerCappingConfig.Spec.ObservationWindowSeconds) * time.Second
-			}
+		switch powerCappingConfig.Spec.PowerCappingSpec.Kind {
+		case v1alpha1.RelativePowerCapOfPeakPowerConsumptionInPercentage:
+			r.Log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
+			duration = time.Duration(powerCappingConfig.Spec.PowerCappingSpec.RelativePowerCapInPercentageSpec.SampleWindow) * time.Second
+		}
+	}
+
+	go func() {
+		ctx, cancel := context.WithCancel(context.Background())
+		defer cancel()
+
+		peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
+		if err != nil {
+			r.Log.Error(err, "Failed to watch pod power usage")
+			return
 		}
 
-		go func() {
-			ctx, cancel := context.WithCancel(context.Background())
-			defer cancel()
-
-			peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
-			if err != nil {
-				r.Log.Error(err, "Failed to watch pod power usage")
-				return
-			}
-
-			powerCapPercentage := getPowerCapPercentage(powerCapLabel)
-			powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
-			deviceLabels := r.getPodDevices(pod)
-			r.createAlert(pod, int(powerCap), deviceLabels)
-		}()
-	}
+		powerCapPercentage := getPowerCapPercentage(powerCapLabel)
+		powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
+		deviceLabels := r.getPodDevices(pod)
+		r.createAlert(pod, int(powerCap), deviceLabels)
+	}()
 }
 
 func (r *PowerCappingConfigReconciler) handlePodDelete(obj interface{}) {
