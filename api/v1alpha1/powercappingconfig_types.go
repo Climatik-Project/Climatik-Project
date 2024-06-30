@@ -96,6 +96,10 @@ type PowerCappingConfig struct {
 	Status PowerCappingConfigStatus `json:"status,omitempty"`
 }
 
+func (p *PowerCappingConfig) Error() string {
+	return "Error"
+}
+
 //+kubebuilder:object:root=true
 
 // PowerCappingConfigList contains a list of PowerCappingConfig
