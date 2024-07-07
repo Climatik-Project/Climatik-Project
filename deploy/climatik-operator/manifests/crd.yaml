@@ -25,6 +25,22 @@ spec:
                   type: integer
                 temperatureThresholdCelsius:
                   type: integer
+                powerCapLimit:
+                  type: integer
+                scaledObjectRefs:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      apiVersion:
+                        type: string
+                      kind:
+                        type: string
+                      metadata:
+                        type: object
+                        properties:
+                          name:
+                            type: string
   scope: Namespaced
   names:
     plural: gpupowercappingconfigs
