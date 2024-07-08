@@ -3,6 +3,10 @@ kind: PowerCappingConfig
 metadata:
   name: llm-example-powercappingconfig
 spec:
+  workloadType: training
+  efficiencyLevel: high
+  powerCapWatts: 1000
+  temperatureThresholdCelsius: 75
   powerCapLimit: 1000
   scaledObjectRefs:
     - apiVersion: keda.sh/v1alpha1
