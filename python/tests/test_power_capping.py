@@ -136,7 +136,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Assert that the maxReplicaCount is set to one above the current number of replicas
         patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[1]
-        self.assertEqual(patch_call_args['body']['spec']['maxReplicaCount'],1)
+        self.assertEqual(patch_call_args['body']['spec']['maxReplicaCount'], 1)
 
     @patch('climatik_operator.operator.prom', new_callable=MagicMock)
     @patch('climatik_operator.operator.kubernetes.client.CustomObjectsApi')
