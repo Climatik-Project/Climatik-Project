@@ -19,7 +19,7 @@ spec:
         imagePullPolicy: Always
         env:
         - name: PROMETHEUS_HOST
-          value: "http://prometheus.default.svc.cluster.local:9090"
+          value: "http://localhost:9090"
         resources:
           limits:
             cpu: 100m

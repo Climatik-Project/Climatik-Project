@@ -1,6 +1,6 @@
 import unittest
 from unittest.mock import MagicMock, patch
-from climatik_operator.operator import create_power_capping_config, monitor_power_usage, calculate_max_replicas
+from climatik_operator.operator import create_power_capping_config, calculate_max_replicas
 from kubernetes import client
 from prometheus_api_client import PrometheusConnect
 
