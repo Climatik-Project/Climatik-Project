@@ -3,9 +3,9 @@ import logging
 import kubernetes
 import os
 from jsonschema import validate, ValidationError
-from crd import POWER_CAPPING_CONFIG_SCHEMA
-from strategies import get_power_capping_strategy
-from prom_metrics import PowerCappingMetrics
+from .crd import POWER_CAPPING_CONFIG_SCHEMA
+from .strategies import get_power_capping_strategy
+from .prom_metrics import PowerCappingMetrics
 
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
@@ -174,8 +174,8 @@ def monitor_power_usage(spec, status, **kwargs):
                                                   forecast_power)
 
     # Update the status with the current and forecast power consumption
-    # status['currentPowerConsumption'] = sum(power_consumptions.values())
-    #status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
+    status['currentPowerConsumption'] = sum(power_consumptions.values())
+    status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
 
 
 def calculate_max_replicas(power_cap_limit):
