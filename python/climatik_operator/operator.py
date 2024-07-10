@@ -175,7 +175,8 @@ def monitor_power_usage(spec, status, **kwargs):
 
     # Update the status with the current and forecast power consumption
     status['currentPowerConsumption'] = sum(power_consumptions.values())
-    status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
+    status['forecastPowerConsumption'] = sum(
+        forecast_power_consumption.values())
 
 
 def calculate_max_replicas(power_cap_limit):

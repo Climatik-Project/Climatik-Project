@@ -17,8 +17,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
     @patch('climatik_operator.operator.prom', new_callable=MagicMock)
     @patch('climatik_operator.operator.kubernetes.client.CustomObjectsApi')
     @patch('climatik_operator.operator.kubernetes.client.AppsV1Api')
-    def test_monitor_power_usage_high_consumption(self,
-                                                  mock_apps_api,
+    def test_monitor_power_usage_high_consumption(self, mock_apps_api,
                                                   mock_custom_objects_api,
                                                   mock_prom):
         # Mock the CustomObjectsApi and PrometheusConnect
@@ -30,7 +29,8 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Define the test spec and status
         spec = {
-            'powerCapLimit': 1000,
+            'powerCapLimit':
+            1000,
             'scaledObjectRefs': [{
                 'apiVersion': 'keda.sh/v1alpha1',
                 'kind': 'ScaledObject',
@@ -64,23 +64,25 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
-        self.assertEqual(self.mock_api_client.get_namespaced_custom_object.call_count, 2)
+        self.assertEqual(
+            self.mock_api_client.get_namespaced_custom_object.call_count, 2)
         self.mock_api_client.read_namespaced_deployment.assert_called_once()
-        self.mock_api_client.patch_namespaced_custom_object.assert_called_once()
+        self.mock_api_client.patch_namespaced_custom_object.assert_called_once(
+        )
 
         # Assert the status updates
         self.assertEqual(status['currentPowerConsumption'], 950)
         self.assertEqual(status['forecastPowerConsumption'], 950)
 
         # Assert that the maxReplicaCount is set to the current number of replicas
-        patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[1]
+        patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[
+            1]
         self.assertEqual(patch_call_args['body']['spec']['maxReplicaCount'], 1)
 
     @patch('climatik_operator.operator.prom', new_callable=MagicMock)
     @patch('climatik_operator.operator.kubernetes.client.CustomObjectsApi')
     @patch('climatik_operator.operator.kubernetes.client.AppsV1Api')
-    def test_monitor_power_usage_moderate_consumption(self,
-                                                      mock_apps_api,
+    def test_monitor_power_usage_moderate_consumption(self, mock_apps_api,
                                                       mock_custom_objects_api,
                                                       mock_prom):
         # Mock the CustomObjectsApi and PrometheusConnect
@@ -92,7 +94,8 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Define the test spec and status
         spec = {
-            'powerCapLimit': 1000,
+            'powerCapLimit':
+            1000,
             'scaledObjectRefs': [{
                 'apiVersion': 'keda.sh/v1alpha1',
                 'kind': 'ScaledObject',
@@ -126,16 +129,19 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
-        self.assertEqual(self.mock_api_client.get_namespaced_custom_object.call_count, 2)
+        self.assertEqual(
+            self.mock_api_client.get_namespaced_custom_object.call_count, 2)
         self.mock_api_client.read_namespaced_deployment.assert_called_once()
-        self.mock_api_client.patch_namespaced_custom_object.assert_called_once()
+        self.mock_api_client.patch_namespaced_custom_object.assert_called_once(
+        )
 
         # Assert the status updates
         self.assertEqual(status['currentPowerConsumption'], 800)
         self.assertEqual(int(status['forecastPowerConsumption']), int(800))
 
         # Assert that the maxReplicaCount is set to one above the current number of replicas
-        patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[1]
+        patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[
+            1]
         self.assertEqual(patch_call_args['body']['spec']['maxReplicaCount'], 1)
 
     @patch('climatik_operator.operator.prom', new_callable=MagicMock)
@@ -153,7 +159,8 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Define the test spec and status
         spec = {
-            'powerCapLimit': 1000,
+            'powerCapLimit':
+            1000,
             'scaledObjectRefs': [{
                 'apiVersion': 'keda.sh/v1alpha1',
                 'kind': 'ScaledObject',
@@ -169,9 +176,11 @@ class TestPowerCappingStrategies(unittest.TestCase):
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
-        self.assertEqual(self.mock_api_client.get_namespaced_custom_object.call_count, 2)
+        self.assertEqual(
+            self.mock_api_client.get_namespaced_custom_object.call_count, 2)
         self.mock_api_client.read_namespaced_deployment.assert_called_once()
-        self.mock_api_client.patch_namespaced_custom_object.assert_called_once()
+        self.mock_api_client.patch_namespaced_custom_object.assert_called_once(
+        )
 
         # Assert the status updates
         self.assertEqual(status['currentPowerConsumption'], 500)

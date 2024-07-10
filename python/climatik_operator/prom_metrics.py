@@ -1,5 +1,6 @@
 from prometheus_client import Gauge, start_http_server
 
+
 class PowerCappingMetrics:
 
     def __init__(self, port=8000):
