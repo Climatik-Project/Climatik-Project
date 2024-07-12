@@ -10,7 +10,7 @@ from .prom_metrics import PowerCappingMetrics
 # Import the Prometheus API client
 from prometheus_api_client import PrometheusConnect
 
-# obtain prometheus host and power usage ratios from environment variables
+# Set up environment variables and Prometheus connection
 prom_host = os.getenv('PROMETHEUS_HOST')
 if not prom_host:
     raise ValueError("PROMETHEUS_HOST environment variable is not set")
@@ -25,7 +25,6 @@ power_capping_strategy = get_power_capping_strategy(selected_strategy)
 
 # Create a Prometheus API client
 prom = PrometheusConnect(url=prom_host, disable_ssl=True)
-
 metrics = PowerCappingMetrics()
 
 
@@ -118,10 +117,11 @@ def monitor_power_usage(spec, status, **kwargs):
             namespace=kwargs['namespace'], deployment_name=deployment_name)
         power_consumptions[deployment_name] = power_consumption
 
-    # Calculate the updated maxReplicas for each deployment based on the selected strategy
     # log the power consumption and current replicas
     logging.info(f"Power consumption: {power_consumptions}")
     logging.info(f"Current replicas: {current_replicas}")
+
+    # Calculate the updated maxReplicas for each deployment based on the selected strategy
     total_power_consumption = sum(power_consumptions.values())
     if total_power_consumption > 0:
         updated_max_replicas = power_capping_strategy.calculate_max_replicas(

@@ -15,11 +15,17 @@ spec:
       serviceAccountName: power-capping-operator
       containers:
       - name: power-capping-operator
-        image: quay.io/climatik-project/climatik-operator:latest
+        image: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO):latest
         imagePullPolicy: Always
         env:
         - name: PROMETHEUS_HOST
           value: "http://localhost:9090"
+        - name: KUBERNETES_SERVICE_HOST
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: KUBERNETES_SERVICE_PORT
+          value: "443"
         resources:
           limits:
             cpu: 100m
@@ -27,6 +33,8 @@ spec:
           requests:
             cpu: 50m
             memory: 64Mi
+      imagePullSecrets:
+      - name: ghcr-secret
 ---
 apiVersion: v1
 kind: ServiceAccount
