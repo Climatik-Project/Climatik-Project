@@ -77,6 +77,8 @@ To install the power capping operator, follow these steps:
 
    ```bash
    export GITHUB_PAT=<your-personal-access-token>
+   export GITHUB_USERNAME=<your-username>
+   export GITHUN_REPO=climatik-project
    ```
 
 3. Create secret with Github Username & Repo name for Kubernetes:
