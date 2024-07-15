@@ -95,7 +95,7 @@ ensure_all_tools() {
 
 on_cluster_up() {
 	cluster_prereqs
-	info 'Next: "make run" to run operator locally'
+	info 'Next: "make" to run it locally'
 }
 
 on_cluster_restart() {

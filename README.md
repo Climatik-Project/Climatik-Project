@@ -73,34 +73,52 @@ To install the power capping operator, follow these steps:
    git clone https://github.com/Climatik-Project/Climatik-Project
    ```
 
-2. Set up Github PAT to use ghcr.io
+2. Change hard coded Github Username in Climatik-Project/config/manager/manager.yaml, Climatik-Project/deploy/climatik-operator/manifests/deployment.yaml
+
+   ```bash
+   Replace <your-user-name> with your own username.
+   ```
+
+3. Set up Github PAT to use ghcr.io
 
    ```bash
    export GITHUB_PAT=<your-personal-access-token>
    export GITHUB_USERNAME=<your-username>
-   export GITHUN_REPO=climatik-project
+   export GITHUB_REPO=climatik-project
    ```
 
-3. Create secret with Github Username & Repo name for Kubernetes:
+4. Create secret with Github Username & Repo name for Kubernetes:
 
    ```bash
+   kubectl delete secret github-secret
    kubectl create secret generic github-secret \
          --from-literal=GITHUB_USERNAME=$GITHUB_USERNAME \
          --from-literal=GITHUB_REPO=$GITHUB_REPO
    ```
 
-4. Install the necessary CRDs and operators:
+5. Python Libraries:
 
    ```bash
-   kubectl create secret generic github-secret \
-      --from-literal=GITHUB_USERNAME=$GITHUB_USERNAME \
-      --from-literal=GITHUB_REPO=$GITHUB_REPO
-   kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
-   kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
-   kubectl apply -f deploy/climatik-operator/manifests/deployment.yaml
+   python -m venv venv
+   source venv/bin/activate
+   pip install -r python/climatik_operator/requirements.txt
    ```
 
-5. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
+6. Install the necessary CRDs and operators:
+
+   ```bash
+   make cluster-up
+   make
+   ```
+
+7. Verify pods exist:
+
+   ```bash
+   kubectl get pods --all-namespaces
+   kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
+   ```
+
+8. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
    to the [CRD documentation](docs/crd.md) for more details.
 
 ## 5. Usage
