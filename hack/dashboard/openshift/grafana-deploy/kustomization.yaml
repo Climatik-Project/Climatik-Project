@@ -1,0 +1,6 @@
+# run this only from ./grafana-deploy.sh
+commonLabels:
+  sustainable-computing.io/app: kepler
+
+resources:
+- 01-grafana-operator.yaml

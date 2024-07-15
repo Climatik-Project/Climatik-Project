@@ -6,7 +6,8 @@ ARG TARGETARCH
 WORKDIR /workspace
 
 # Copy the Go Modules manifests
-COPY go.mod go.sum ./
+COPY go.mod go.mod
+COPY go.sum go.sum
 
 # Cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer

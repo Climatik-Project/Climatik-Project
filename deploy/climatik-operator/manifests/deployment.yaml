@@ -1,40 +1,73 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: power-capping-operator
+  name: operator-powercapping-controller-manager
+  namespace: operator-powercapping-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: power-capping-operator
+      control-plane: controller-manager
   template:
     metadata:
       labels:
-        app: power-capping-operator
+        control-plane: controller-manager
     spec:
-      serviceAccountName: power-capping-operator
+      serviceAccountName: operator-powercapping-controller-manager
       containers:
-      - name: power-capping-operator
-        image: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO):latest
-        imagePullPolicy: Always
-        env:
-        - name: PROMETHEUS_HOST
-          value: "http://localhost:9090"
-        - name: KUBERNETES_SERVICE_HOST
-          valueFrom:
-            fieldRef:
-              fieldPath: status.hostIP
-        - name: KUBERNETES_SERVICE_PORT
-          value: "443"
+      - name: kube-rbac-proxy
+        image: gcr.io/kubebuilder/kube-rbac-proxy:v0.15.0
+        args:
+        - --secure-listen-address=0.0.0.0:8443
+        - --upstream=http://127.0.0.1:8080/
+        - --logtostderr=true
+        - --v=0
+        ports:
+        - containerPort: 8443
+          name: https
         resources:
           limits:
-            cpu: 100m
+            cpu: 500m
             memory: 128Mi
           requests:
-            cpu: 50m
+            cpu: 5m
             memory: 64Mi
-      imagePullSecrets:
-      - name: ghcr-secret
+      - name: manager
+        image: ghcr.io/<your-user-name>/climatik-project:latest
+        command:
+        - /manager
+        args:
+        - --health-probe-bind-address=:8081
+        - --metrics-bind-address=127.0.0.1:8080
+        - --leader-elect
+        ports:
+        - containerPort: 8081
+          name: healthz
+        - containerPort: 8080
+          name: metrics
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 8081
+          initialDelaySeconds: 15
+          timeoutSeconds: 1
+          periodSeconds: 20
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /readyz
+            port: 8081
+          initialDelaySeconds: 5
+          timeoutSeconds: 1
+          periodSeconds: 10
+          failureThreshold: 3
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
 ---
 apiVersion: v1
 kind: ServiceAccount

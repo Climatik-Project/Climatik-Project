@@ -1,4 +1,4 @@
-.PHONY: all tests build-image-ghcr push-image-ghcr release-ghcr deploy-ghcr
+.PHONY: all tests build-image-ghcr push-image-ghcr release-ghcr deploy-ghcr cluster-up
 
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
@@ -6,9 +6,13 @@ GITHUB_USERNAME ?= your-github-username
 GITHUB_REPO ?= climatik-project
 GHCR_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)
 
-all: deploy-ghcr
+CLUSTER_PROVIDER ?= kind
+LOCAL_DEV_CLUSTER_VERSION ?= main
+KIND_WORKER_NODES ?=2
 
-tests: build-image-ghcr
+all: tests build-image-ghcr push-image-ghcr deploy-ghcr
+
+tests:
 	cd python && PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover tests
 
 build-image: tests
@@ -31,7 +35,28 @@ release-ghcr: push-image-ghcr
 deploy: release
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
+	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/deployment.yaml
 
 deploy-ghcr: release-ghcr
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
+	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/deployment.yaml
+
+cluster-up: ## setup a cluster for local development
+	CLUSTER_PROVIDER=$(CLUSTER_PROVIDER) \
+	VERSION=$(LOCAL_DEV_CLUSTER_VERSION) \
+	KIND_WORKER_NODES=$(KIND_WORKER_NODES) \
+	./hack/cluster.sh up
+
+
+.PHONY: build
+build:
+	go build -o bin/manager ./cmd/...
+
+.PHONY: run
+run:
+	go run ./cmd/...
