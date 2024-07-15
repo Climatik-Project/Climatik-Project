@@ -1,11 +1,19 @@
 apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
-  name: gpupowercappingconfigs.powercapping.climatik-project.ai
+  name: powercappingconfigs.powercapping.climatik-project.ai
 spec:
   group: powercapping.climatik-project.ai
+  names:
+    kind: PowerCappingConfig
+    listKind: PowerCappingConfigList
+    plural: powercappingconfigs
+    singular: powercappingconfig
+    shortNames:
+      - gpcc
+  scope: Namespaced
   versions:
-    - name: v1
+    - name: v1alpha1
       served: true
       storage: true
       schema:
@@ -41,10 +49,10 @@ spec:
                         properties:
                           name:
                             type: string
-  scope: Namespaced
-  names:
-    plural: gpupowercappingconfigs
-    singular: gpupowercappingconfig
-    kind: PowerCappingConfig
-    shortNames:
-      - gpcc
+            status:
+              type: object
+              properties:
+                currentPowerConsumption:
+                  type: number
+                forecastPowerConsumption:
+                  type: number
