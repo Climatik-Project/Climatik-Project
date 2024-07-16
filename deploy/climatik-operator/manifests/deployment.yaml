@@ -33,7 +33,7 @@ spec:
             cpu: 5m
             memory: 64Mi
       - name: manager
-        image: ghcr.io/<your-user-name>/climatik-project:latest
+        image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}:latest
         command:
         - /manager
         args:
@@ -73,6 +73,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: power-capping-operator
+  namespace: operator-powercapping-system
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
@@ -97,4 +98,4 @@ roleRef:
 subjects:
 - kind: ServiceAccount
   name: power-capping-operator
-  namespace: default
+  namespace: operator-powercapping-system
