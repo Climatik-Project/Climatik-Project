@@ -1,4 +1,4 @@
-.PHONY: all tests build-image-ghcr push-image-ghcr release-ghcr deploy-ghcr cluster-up
+.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr release release-ghcr deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
 
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
@@ -8,9 +8,11 @@ GHCR_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)
 
 CLUSTER_PROVIDER ?= kind
 LOCAL_DEV_CLUSTER_VERSION ?= main
-KIND_WORKER_NODES ?=2
+KIND_WORKER_NODES ?= 2
 
-all: tests build-image-ghcr push-image-ghcr deploy-ghcr
+.DEFAULT_GOAL := default
+
+default: tests build-image-ghcr push-image-ghcr modify-manager-yaml deploy-ghcr
 
 tests:
 	cd python && PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover tests
@@ -37,14 +39,22 @@ deploy: release
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
-	kubectl apply -f deploy/climatik-operator/manifests/deployment.yaml
+	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	echo "$$file"; \
+	echo "$$file" | kubectl apply -f -
 
 deploy-ghcr: release-ghcr
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
-	kubectl apply -f deploy/climatik-operator/manifests/deployment.yaml
+	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	echo "$$file"; \
+	echo "$$file" | kubectl apply -f -
+
+modify-manager-yaml:
+	sed -i.bak "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" config/manager/manager.yaml && rm config/manager/manager.yaml.bak
+	sed -i.bak "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g" config/manager/manager.yaml && rm config/manager/manager.yaml.bak
 
 cluster-up: ## setup a cluster for local development
 	CLUSTER_PROVIDER=$(CLUSTER_PROVIDER) \
@@ -52,11 +62,11 @@ cluster-up: ## setup a cluster for local development
 	KIND_WORKER_NODES=$(KIND_WORKER_NODES) \
 	./hack/cluster.sh up
 
-
-.PHONY: build
 build:
 	go build -o bin/manager ./cmd/...
 
-.PHONY: run
 run:
 	go run ./cmd/...
+
+deploy-config: modify-manager-yaml deploy
+deploy-config-ghcr: modify-manager-yaml deploy-ghcr

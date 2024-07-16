@@ -70,7 +70,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: ghcr.io/<your-user-name>/climatik-project:latest # Use placeholders for the environment variables
+        image: ghcr.io/${GITHUB_USERNAME}/climatik-project:latest # Use placeholder
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

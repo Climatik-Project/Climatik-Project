@@ -73,13 +73,7 @@ To install the power capping operator, follow these steps:
    git clone https://github.com/Climatik-Project/Climatik-Project
    ```
 
-2. Change hard coded Github Username in Climatik-Project/config/manager/manager.yaml, Climatik-Project/deploy/climatik-operator/manifests/deployment.yaml
-
-   ```bash
-   Replace <your-user-name> with your own username.
-   ```
-
-3. Set up Github PAT to use ghcr.io
+2. Set up Github PAT to use ghcr.io
 
    ```bash
    export GITHUB_PAT=<your-personal-access-token>
@@ -87,16 +81,7 @@ To install the power capping operator, follow these steps:
    export GITHUB_REPO=climatik-project
    ```
 
-4. Create secret with Github Username & Repo name for Kubernetes:
-
-   ```bash
-   kubectl delete secret github-secret
-   kubectl create secret generic github-secret \
-         --from-literal=GITHUB_USERNAME=$GITHUB_USERNAME \
-         --from-literal=GITHUB_REPO=$GITHUB_REPO
-   ```
-
-5. Python Libraries:
+3. Python Libraries:
 
    ```bash
    python -m venv venv
@@ -104,21 +89,21 @@ To install the power capping operator, follow these steps:
    pip install -r python/climatik_operator/requirements.txt
    ```
 
-6. Install the necessary CRDs and operators:
+4. Install the necessary CRDs and operators:
 
    ```bash
    make cluster-up
    make
    ```
 
-7. Verify pods exist:
+5. Verify pods exist:
 
    ```bash
    kubectl get pods --all-namespaces
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
    ```
 
-8. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
+6. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
    to the [CRD documentation](docs/crd.md) for more details.
 
 ## 5. Usage
