@@ -44,6 +44,7 @@ deploy: release
 	echo "$$file" | kubectl apply -f -
 
 deploy-ghcr: release-ghcr
+	kubectl delete deployment operator-powercapping-controller-manager   -n operator-powercapping-system --ignore-not-found
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml

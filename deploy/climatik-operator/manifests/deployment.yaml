@@ -53,14 +53,14 @@ spec:
           timeoutSeconds: 1
           periodSeconds: 20
           failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /readyz
-            port: 8081
-          initialDelaySeconds: 5
-          timeoutSeconds: 1
-          periodSeconds: 10
-          failureThreshold: 3
+        # readinessProbe:
+        #   httpGet:
+        #     path: /readyz
+        #     port: 8081
+        #   initialDelaySeconds: 5
+        #   timeoutSeconds: 1
+        #   periodSeconds: 10
+        #   failureThreshold: 3
         resources:
           limits:
             cpu: 500m

@@ -100,6 +100,7 @@ To install the power capping operator, follow these steps:
 
    ```bash
    kubectl get pods --all-namespaces
+   kubectl get deployments --all-namespaces
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
    ```
 
