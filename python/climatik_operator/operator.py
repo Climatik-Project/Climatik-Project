@@ -17,10 +17,7 @@ sys.path.append(src_path)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+    handlers=[logging.StreamHandler(sys.stdout)])
 
 # Set the logging level based on environment variable
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -28,7 +25,8 @@ logging.getLogger().setLevel(log_level)
 
 prom_host = os.getenv('PROMETHEUS_HOST', 'http://localhost:9090')
 high_power_usage_ratio = float(os.getenv('HIGH_POWER_USAGE_RATIO', '0.95'))
-moderate_power_usage_ratio = float(os.getenv('MODERATE_POWER_USAGE_RATIO', '0.8'))
+moderate_power_usage_ratio = float(
+    os.getenv('MODERATE_POWER_USAGE_RATIO', '0.8'))
 
 logging.info(f"Prometheus host: {prom_host}")
 logging.info(f"High power usage ratio: {high_power_usage_ratio}")
@@ -52,7 +50,8 @@ def start_metrics_server(**kwargs):
     metrics.start_server()
 
 
-@kopf.on.create('powercapping.climatik-project.ai', 'v1alpha1', 'powercappingconfigs')
+@kopf.on.create('powercapping.climatik-project.ai', 'v1alpha1',
+                'powercappingconfigs')
 def create_power_capping_config(spec, **kwargs):
     logging.info("Creating power capping config")
     try:
@@ -60,7 +59,8 @@ def create_power_capping_config(spec, **kwargs):
         validate(spec, POWER_CAPPING_CONFIG_SCHEMA)
     except ValidationError as e:
         logging.error(f"Invalid PowerCappingConfig spec: {e.message}")
-        raise kopf.PermanentError(f"Invalid PowerCappingConfig spec: {e.message}")
+        raise kopf.PermanentError(
+            f"Invalid PowerCappingConfig spec: {e.message}")
 
     # Retrieve the power capping configuration from the custom resource
     power_cap_limit = spec.get('powerCapLimit')
@@ -82,8 +82,7 @@ def create_power_capping_config(spec, **kwargs):
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
             plural=f"{kind.lower()}s",
-            name=name
-        )
+            name=name)
 
         # Update the ScaleObject with the power capping configuration
         max_replicas = calculate_max_replicas(power_cap_limit)
@@ -97,11 +96,13 @@ def create_power_capping_config(spec, **kwargs):
             namespace=kwargs['namespace'],
             plural=f"{kind.lower()}s",
             name=name,
-            body=scale_object
-        )
+            body=scale_object)
 
 
-@kopf.timer('powercapping.climatik-project.ai', 'v1alpha1', 'powercappingconfigs', interval=10.0)
+@kopf.timer('powercapping.climatik-project.ai',
+            'v1alpha1',
+            'powercappingconfigs',
+            interval=10.0)
 def monitor_power_usage(spec, status, **kwargs):
     logging.info("Monitoring power usage")
     power_cap_limit = spec.get('powerCapLimit')
@@ -125,20 +126,18 @@ def monitor_power_usage(spec, status, **kwargs):
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
             plural=f"{kind.lower()}s",
-            name=name
-        )
+            name=name)
 
         deployment_name = scaled_object['spec']['scaleTargetRef']['name']
 
         # Retrieve the current number of replicas from the deployment
         deployment = api_instance.read_namespaced_deployment(
-            namespace=kwargs['namespace'],
-            name=deployment_name
-        )
+            namespace=kwargs['namespace'], name=deployment_name)
         current_replicas[deployment_name] = deployment.spec.replicas
 
         # Retrieve the power consumption for the deployment
-        power_consumption = get_power_consumption(deployment_name, kwargs['namespace'])
+        power_consumption = get_power_consumption(deployment_name,
+                                                  kwargs['namespace'])
         power_consumptions[deployment_name] = power_consumption
 
     logging.info(f"Power consumption: {power_consumptions}")
@@ -148,8 +147,7 @@ def monitor_power_usage(spec, status, **kwargs):
     total_power_consumption = sum(power_consumptions.values())
     if total_power_consumption > 0:
         updated_max_replicas = power_capping_strategy.calculate_max_replicas(
-            current_replicas, power_consumptions, power_cap_limit
-        )
+            current_replicas, power_consumptions, power_cap_limit)
 
     # Update the maxReplicaCount for each ScaledObject
     for scale_object_ref in scale_object_refs:
@@ -163,8 +161,7 @@ def monitor_power_usage(spec, status, **kwargs):
             version=api_version.split('/')[1],
             namespace=kwargs['namespace'],
             plural=f"{kind.lower()}s",
-            name=name
-        )
+            name=name)
 
         deployment_name = scaled_object['spec']['scaleTargetRef']['name']
         max_replicas = updated_max_replicas[deployment_name]
@@ -179,8 +176,7 @@ def monitor_power_usage(spec, status, **kwargs):
             namespace=kwargs['namespace'],
             plural=f"{kind.lower()}s",
             name=name,
-            body=scaled_object
-        )
+            body=scaled_object)
 
     # Update Prometheus metrics
     metrics.update_scale_objects(len(scale_object_refs))
@@ -188,30 +184,36 @@ def monitor_power_usage(spec, status, **kwargs):
     forecast_power_consumption = {}
 
     for deployment_name, power_consumption in power_consumptions.items():
-        metrics.update_replicas(deployment_name, current_replicas[deployment_name])
+        metrics.update_replicas(deployment_name,
+                                current_replicas[deployment_name])
         metrics.update_power_consumption(deployment_name, power_consumption)
-        forecast_power_consumption[deployment_name] = power_consumption * updated_max_replicas[deployment_name]
+        forecast_power_consumption[
+            deployment_name] = power_consumption * updated_max_replicas[
+                deployment_name]
 
     for deployment_name, forecast_power in forecast_power_consumption.items():
-        metrics.update_forecast_power_consumption(deployment_name, forecast_power)
+        metrics.update_forecast_power_consumption(deployment_name,
+                                                  forecast_power)
 
     # Update the status with the current and forecast power consumption
     status['currentPowerConsumption'] = sum(power_consumptions.values())
-    status['forecastPowerConsumption'] = sum(forecast_power_consumption.values())
+    status['forecastPowerConsumption'] = sum(
+        forecast_power_consumption.values())
 
 
 def calculate_max_replicas(power_cap_limit):
     # Implement the logic to calculate the maximum replicas based on the power cap limit
     # This is just a placeholder, replace it with your actual calculation
-    logging.debug(f"Calculating max replicas for power cap limit: {power_cap_limit}")
+    logging.debug(
+        f"Calculating max replicas for power cap limit: {power_cap_limit}")
     return int(power_cap_limit / 100)
 
 
-def get_current_replica_from_scale_object(api_instance, namespace, scale_object):
+def get_current_replica_from_scale_object(api_instance, namespace,
+                                          scale_object):
     deployment = api_instance.read_namespaced_deployment(
         namespace=namespace,
-        name=scale_object['spec']['scaleTargetRef']['name']
-    )
+        name=scale_object['spec']['scaleTargetRef']['name'])
     return deployment.spec.replicas
 
 

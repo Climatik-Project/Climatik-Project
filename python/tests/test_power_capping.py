@@ -2,7 +2,7 @@ import os
 import sys
 
 #################################################################
-# import internal src 
+# import internal src
 src_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(src_path)
 

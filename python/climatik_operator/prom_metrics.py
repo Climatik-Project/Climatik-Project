@@ -9,10 +9,7 @@ import requests
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
-)
+    handlers=[logging.StreamHandler(sys.stdout)])
 
 # Set the logging level based on environment variable
 log_level = os.getenv('LOG_LEVEL', 'INFO').upper()
@@ -20,10 +17,11 @@ logging.getLogger().setLevel(log_level)
 
 
 class PowerCappingMetrics:
+
     def __init__(self, port=9091, url="http://localhost:9090"):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing PowerCappingMetrics")
-        
+
         self.port = port
         self.prom = PrometheusConnect(url=url, disable_ssl=True)
 
@@ -99,7 +97,9 @@ class PowerCappingMetrics:
         self.replicas_gauge.labels(deployment=deployment).set(count)
 
     def update_power_consumption(self, deployment, power_consumption):
-        self.logger.info(f"Updating power consumption for {deployment}: {power_consumption}")
+        self.logger.info(
+            f"Updating power consumption for {deployment}: {power_consumption}"
+        )
         self.power_consumption_gauge.labels(
             deployment=deployment).set(power_consumption)
 
@@ -108,11 +108,13 @@ class PowerCappingMetrics:
         self.cpu_time_gauge.labels(deployment=deployment).set(cpu_time)
 
     def update_core_joules(self, deployment, core_joules):
-        self.logger.info(f"Updating core joules for {deployment}: {core_joules}")
+        self.logger.info(
+            f"Updating core joules for {deployment}: {core_joules}")
         self.core_joules_gauge.labels(deployment=deployment).set(core_joules)
 
     def update_dram_joules(self, deployment, dram_joules):
-        self.logger.info(f"Updating DRAM joules for {deployment}: {dram_joules}")
+        self.logger.info(
+            f"Updating DRAM joules for {deployment}: {dram_joules}")
         self.dram_joules_gauge.labels(deployment=deployment).set(dram_joules)
 
     def update_gpu_joules(self, deployment, gpu_joules):
@@ -121,27 +123,33 @@ class PowerCappingMetrics:
 
     # Add update functions for the new metrics
     def update_bpf_block_irq(self, deployment, bpf_block_irq):
-        self.logger.info(f"Updating BPF block IRQ for {deployment}: {bpf_block_irq}")
+        self.logger.info(
+            f"Updating BPF block IRQ for {deployment}: {bpf_block_irq}")
         self.bpf_block_irq_gauge.labels(
             deployment=deployment).set(bpf_block_irq)
 
     def update_bpf_cpu_time_ms(self, deployment, bpf_cpu_time_ms):
-        self.logger.info(f"Updating BPF CPU time in ms for {deployment}: {bpf_cpu_time_ms}")
+        self.logger.info(
+            f"Updating BPF CPU time in ms for {deployment}: {bpf_cpu_time_ms}")
         self.bpf_cpu_time_ms_gauge.labels(
             deployment=deployment).set(bpf_cpu_time_ms)
 
     def update_bpf_net_rx_irq(self, deployment, bpf_net_rx_irq):
-        self.logger.info(f"Updating BPF net RX IRQ for {deployment}: {bpf_net_rx_irq}")
+        self.logger.info(
+            f"Updating BPF net RX IRQ for {deployment}: {bpf_net_rx_irq}")
         self.bpf_net_rx_irq_gauge.labels(
             deployment=deployment).set(bpf_net_rx_irq)
 
     def update_bpf_net_tx_irq(self, deployment, bpf_net_tx_irq):
-        self.logger.info(f"Updating BPF net TX IRQ for {deployment}: {bpf_net_tx_irq}")
+        self.logger.info(
+            f"Updating BPF net TX IRQ for {deployment}: {bpf_net_tx_irq}")
         self.bpf_net_tx_irq_gauge.labels(
             deployment=deployment).set(bpf_net_tx_irq)
 
     def update_bpf_page_cache_hit(self, deployment, bpf_page_cache_hit):
-        self.logger.info(f"Updating BPF page cache hit for {deployment}: {bpf_page_cache_hit}")
+        self.logger.info(
+            f"Updating BPF page cache hit for {deployment}: {bpf_page_cache_hit}"
+        )
         self.bpf_page_cache_hit_gauge.labels(
             deployment=deployment).set(bpf_page_cache_hit)
 

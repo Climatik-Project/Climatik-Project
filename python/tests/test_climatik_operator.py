@@ -2,7 +2,7 @@ import os
 import sys
 
 #################################################################
-# import internal src 
+# import internal src
 src_path = os.path.join(os.path.dirname(__file__), '..')
 sys.path.append(src_path)
 
@@ -11,8 +11,6 @@ from unittest.mock import MagicMock, patch
 from climatik_operator.operator import create_power_capping_config, calculate_max_replicas
 from kubernetes import client
 from prometheus_api_client import PrometheusConnect
-
-
 
 
 class TestPowerCappingOperator(unittest.TestCase):
