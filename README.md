@@ -84,6 +84,7 @@ To install the power capping operator, follow these steps:
 3. Python Libraries:
 
    ```bash
+   deactivate
    python -m venv venv
    source venv/bin/activate
    pip install -r python/climatik_operator/requirements.txt
@@ -104,7 +105,34 @@ To install the power capping operator, follow these steps:
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
    ```
 
-6. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
+6. Check logs for containers:
+
+   For manager:
+
+   ```bash
+   kubectl logs -n operator-powercapping-system operator-powercapping-controller-manager-${pod unique id} -c manager
+   ```
+
+   For all:
+
+   ```bash
+   kubectl logs -n operator-powercapping-system operator-powercapping-controller-manager-${pod unique id} --all-containers=true
+   ```
+
+7. Test Operator Locally:
+
+   ```bash
+   cd python/climatik_operator && kopf run operator.py
+   ```
+
+8. Check CRD:
+
+   ```bash
+   kubectl get crd
+   kubectl get scaledobject --all-namespaces
+   ```
+
+9. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
    to the [CRD documentation](docs/crd.md) for more details.
 
 ## 5. Usage
