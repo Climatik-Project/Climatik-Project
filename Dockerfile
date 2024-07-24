@@ -33,9 +33,12 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the Python application code
 COPY python/climatik_operator /app/
 
-# Final stage: Use distroless as minimal base image to package the Go binary and Python environment
-FROM gcr.io/distroless/static:nonroot
+# Final stage: Use alpine base image to package the Go binary and Python environment
+FROM alpine:latest
 WORKDIR /
+
+# Install dependencies
+RUN apk add --no-cache bash
 
 # Copy the built Go binary
 COPY --from=builder /workspace/manager .
@@ -44,8 +47,11 @@ COPY --from=builder /workspace/manager .
 COPY --from=python-builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=python-builder /usr/local/bin /usr/local/bin
 
+# Copy the entire Python application code from the python-builder stage
+COPY --from=python-builder /app /app
+
 # Set the user
 USER 65532:65532
 
-# Command to run the Go manager binary
-ENTRYPOINT ["/manager"]
+# Command to run the Go manager binary and the Python operator
+CMD ["/bin/sh", "-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect  && kopf run /app/operator.py"]

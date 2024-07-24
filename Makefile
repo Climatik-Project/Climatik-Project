@@ -2,7 +2,6 @@
 
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
-GITHUB_USERNAME ?= your-github-username
 GITHUB_REPO ?= climatik-project
 GHCR_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)
 
@@ -15,13 +14,12 @@ KIND_WORKER_NODES ?= 2
 default: tests build-image-ghcr push-image-ghcr modify-manager-yaml deploy-ghcr
 
 tests:
-	cd python && PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover tests
-
+	PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover python/tests
 build-image: tests
 	docker build -t $(IMG):latest .
 
 build-image-ghcr: tests
-	docker build -t $(GHCR_IMG):latest .
+	docker build --no-cache -t $(GHCR_IMG):latest .
 
 push-image: build-image
 	docker push $(IMG):latest

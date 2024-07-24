@@ -34,25 +34,21 @@ spec:
             memory: 64Mi
       - name: manager
         image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}:latest
-        command:
-        - /manager
-        args:
-        - --health-probe-bind-address=:8081
-        - --metrics-bind-address=127.0.0.1:8080
-        - --leader-elect
+        command: [ "/bin/sh" ]
+        args: ["-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect  && kopf run /app/operator.py"]
         ports:
-        - containerPort: 8081
-          name: healthz
+        # - containerPort: 8081
+        #   name: healthz
         - containerPort: 8080
           name: metrics
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: 8081
-          initialDelaySeconds: 15
-          timeoutSeconds: 1
-          periodSeconds: 20
-          failureThreshold: 3
+        # livenessProbe:
+        #   httpGet:
+        #     path: /healthz
+        #     port: 8081
+        #   initialDelaySeconds: 15
+        #   timeoutSeconds: 1
+        #   periodSeconds: 20
+        #   failureThreshold: 3
         # readinessProbe:
         #   httpGet:
         #     path: /readyz
@@ -68,6 +64,15 @@ spec:
           requests:
             cpu: 10m
             memory: 64Mi
+        env:
+          - name: PROMETHEUS_HOST
+            value: "http://localhost:9090"
+          - name: HIGH_POWER_USAGE_RATIO
+            value: "0.95"
+          - name: MODERATE_POWER_USAGE_RATIO
+            value: "0.8"
+          - name: POWER_CAPPING_STRATEGY
+            value: "maximize_replicas"
 ---
 apiVersion: v1
 kind: ServiceAccount

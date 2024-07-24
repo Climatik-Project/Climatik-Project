@@ -1,19 +1,19 @@
 apiVersion: powercapping.climatik-project.ai/v1alpha1
 kind: PowerCappingConfig
 metadata:
-  name: llm-example-powercappingconfig
+  name: example-powercappingconfig
 spec:
-  workloadType: training
-  efficiencyLevel: high
+  workloadType: "training"
+  efficiencyLevel: "high"
   powerCapWatts: 1000
   temperatureThresholdCelsius: 75
   powerCapLimit: 1000
   scaledObjectRefs:
-    - apiVersion: keda.sh/v1alpha1
-      kind: ScaledObject
+    - apiVersion: "keda.sh/v1alpha1"
+      kind: "ScaledObject"
       metadata:
-        name: mistral-7b-scaleobject
-    - apiVersion: keda.sh/v1alpha1
-      kind: ScaleObject
+        name: "mistral-7b-scaleobject"
+    - apiVersion: "keda.sh/v1alpha1"
+      kind: "ScaledObject"
       metadata:
-        name: llama2-7b-scaleobject
+        name: "llama2-7b-scaleobject"
