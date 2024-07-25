@@ -1,0 +1,39 @@
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: mistral-7b-scaleobject
+  namespace: operator-powercapping-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mistral-7b
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-k8s.monitoring.svc.cluster.local:9090
+      metricName: http_requests_total
+      query: sum(rate(http_requests_total{job="http"}[2m]))
+      threshold: '100'
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: llama2-7b-scaleobject
+  namespace: operator-powercapping-system
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: llama2-7b
+  minReplicaCount: 1
+  maxReplicaCount: 10
+  triggers:
+  - type: prometheus
+    metadata:
+      serverAddress: http://prometheus-k8s.monitoring.svc.cluster.local:9090
+      metricName: http_requests_total
+      query: sum(rate(http_requests_total{job="http"}[2m]))
+      threshold: '100'

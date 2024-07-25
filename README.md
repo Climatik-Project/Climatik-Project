@@ -97,11 +97,14 @@ To install the power capping operator, follow these steps:
    make
    ```
 
-5. Verify pods exist:
+5. Verify resources (Pod, Deployment, ScaledObject) exist:
 
    ```bash
    kubectl get pods --all-namespaces
-   kubectl get deployments --all-namespaces
+   kubectl get deployments -n operator-powercapping-system
+   kubectl get scaledobjects -n operator-powercapping-system
+   kubectl describe scaledobject mistral-7b-scaleobject -n operator-powercapping-system
+   kubectl describe scaledobject mistral-7b-scaleobject -n operator-powercapping-system
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
    ```
 

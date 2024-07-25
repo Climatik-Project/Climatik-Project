@@ -1,6 +1,11 @@
 import logging
 import os
 import sys
+
+# Import the required modules
+src_path = os.path.join(os.path.dirname(__file__), '.')
+sys.path.append(src_path)
+
 import kopf
 import kubernetes
 from jsonschema import validate, ValidationError
@@ -8,10 +13,6 @@ from crd import POWER_CAPPING_CONFIG_SCHEMA
 from strategies import get_power_capping_strategy
 from prom_metrics import PowerCappingMetrics
 from prometheus_api_client import PrometheusConnect
-
-# Import the required modules
-src_path = os.path.join(os.path.dirname(__file__), '.')
-sys.path.append(src_path)
 
 # Configure logging
 logging.basicConfig(
@@ -221,4 +222,14 @@ def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
     query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
     logging.debug(f"Power consumption query: {query}")
-    # Execute the Prom
+    # Execute the Prometheus query
+    result = prom.custom_query(query=query)
+    logging.debug(f"Power consumption query result: {result}")
+    # Extract the power consumption value from the query result
+    power_consumption = 0
+    if result:
+        # the result is in this format: [{'metric': {}, 'value': [1712173496.726, '0.26666666666666666']}]
+        # retrieve the value from the result
+        power_consumption = float(result[0]['value'][1])
+
+    return power_consumption

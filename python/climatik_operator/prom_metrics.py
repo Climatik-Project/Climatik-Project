@@ -18,7 +18,7 @@ logging.getLogger().setLevel(log_level)
 
 class PowerCappingMetrics:
 
-    def __init__(self, port=9091, url="http://localhost:9090"):
+    def __init__(self, port=9092, url="http://localhost:9090"):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("Initializing PowerCappingMetrics")
 

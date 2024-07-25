@@ -2,6 +2,7 @@ apiVersion: powercapping.climatik-project.ai/v1alpha1
 kind: PowerCappingConfig
 metadata:
   name: example-powercappingconfig
+  namespace: operator-powercapping-system
 spec:
   workloadType: "training"
   efficiencyLevel: "high"

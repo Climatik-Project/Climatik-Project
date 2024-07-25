@@ -1,0 +1,21 @@
+# deployment-mistral-7b.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mistral-7b
+  namespace: operator-powercapping-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mistral-7b
+  template:
+    metadata:
+      labels:
+        app: mistral-7b
+    spec:
+      containers:
+      - name: mistral-7b
+        image: nginx:latest
+        ports:
+        - containerPort: 80
