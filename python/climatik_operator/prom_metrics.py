@@ -50,6 +50,9 @@ class PowerCappingMetrics:
         self.power_consumption_gauge = Gauge(
             'power_capping_power_consumption',
             'Current power consumption of each deployment', ['deployment'])
+        self.forecast_power_consumption_gauge = Gauge(
+            'power_capping_forecast_power_consumption',
+            'Forecast power consumption of each deployment', ['deployment'])
         self.cpu_time_gauge = Gauge('power_capping_cpu_time',
                                     'CPU time usage of each deployment',
                                     ['deployment'])
@@ -102,6 +105,13 @@ class PowerCappingMetrics:
         )
         self.power_consumption_gauge.labels(
             deployment=deployment).set(power_consumption)
+
+    def update_forecast_power_consumption(self, deployment, forecast_power):
+        self.logger.info(
+            f"Updating forecast power consumption for {deployment}: {forecast_power}"
+        )
+        self.forecast_power_consumption_gauge.labels(
+            deployment=deployment).set(forecast_power)
 
     def update_cpu_time(self, deployment, cpu_time):
         self.logger.info(f"Updating CPU time for {deployment}: {cpu_time}")

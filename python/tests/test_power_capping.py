@@ -68,6 +68,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
             }]
         }
         status = {}
+        patch = {}
 
         # Define the test ScaledObject
         scaled_object = {
@@ -88,7 +89,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
         self.mock_api_client.read_namespaced_deployment.return_value = deployment
 
         # Call the monitor_power_usage function
-        monitor_power_usage(spec, status, namespace='default')
+        monitor_power_usage(spec, status, patch, namespace='default')
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
@@ -99,8 +100,8 @@ class TestPowerCappingStrategies(unittest.TestCase):
         )
 
         # Assert the status updates
-        self.assertEqual(status['currentPowerConsumption'], 950)
-        self.assertEqual(status['forecastPowerConsumption'], 950)
+        self.assertEqual(patch['status']['currentPowerConsumption'], 950)
+        self.assertEqual(patch['status']['forecastPowerConsumption'], 950)
 
         # Assert that the maxReplicaCount is set correctly
         patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[
@@ -136,6 +137,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
             }]
         }
         status = {}
+        patch = {}
 
         # Define the test ScaledObject
         scaled_object = {
@@ -156,7 +158,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
         self.mock_api_client.read_namespaced_deployment.return_value = deployment
 
         # Call the monitor_power_usage function
-        monitor_power_usage(spec, status, namespace='default')
+        monitor_power_usage(spec, status, patch, namespace='default')
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
@@ -167,8 +169,9 @@ class TestPowerCappingStrategies(unittest.TestCase):
         )
 
         # Assert the status updates
-        self.assertEqual(status['currentPowerConsumption'], 800)
-        self.assertEqual(int(status['forecastPowerConsumption']), int(800))
+        self.assertEqual(patch['status']['currentPowerConsumption'], 800)
+        self.assertEqual(int(patch['status']['forecastPowerConsumption']),
+                         int(800))
 
         # Assert that the maxReplicaCount is set correctly
         patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[
@@ -204,6 +207,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
             }]
         }
         status = {}
+        patch = {}
 
         # Define the test ScaledObject
         scaled_object = {
@@ -224,7 +228,7 @@ class TestPowerCappingStrategies(unittest.TestCase):
         self.mock_api_client.read_namespaced_deployment.return_value = deployment
 
         # Call the monitor_power_usage function
-        monitor_power_usage(spec, status, namespace='default')
+        monitor_power_usage(spec, status, patch, namespace='default')
 
         # Assert that the necessary API calls were made
         mock_prom.custom_query.assert_called_once()
@@ -235,8 +239,8 @@ class TestPowerCappingStrategies(unittest.TestCase):
         )
 
         # Assert the status updates
-        self.assertEqual(status['currentPowerConsumption'], 500)
-        self.assertIn('forecastPowerConsumption', status)
+        self.assertEqual(patch['status']['currentPowerConsumption'], 500)
+        self.assertIn('forecastPowerConsumption', patch['status'])
 
         # Assert that the maxReplicaCount is set correctly
         patch_call_args = self.mock_api_client.patch_namespaced_custom_object.call_args[

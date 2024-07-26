@@ -104,7 +104,7 @@ def create_power_capping_config(spec, **kwargs):
             'v1alpha1',
             'powercappingconfigs',
             interval=10.0)
-def monitor_power_usage(spec, status, **kwargs):
+def monitor_power_usage(spec, status, patch, **kwargs):
     logging.info("Monitoring power usage")
     power_cap_limit = spec.get('powerCapLimit')
     scale_object_refs = spec.get('scaledObjectRefs', [])
@@ -146,6 +146,8 @@ def monitor_power_usage(spec, status, **kwargs):
 
     # Calculate the updated maxReplicas for each deployment based on the selected strategy
     total_power_consumption = sum(power_consumptions.values())
+    updated_max_replicas = {}
+
     if total_power_consumption > 0:
         updated_max_replicas = power_capping_strategy.calculate_max_replicas(
             current_replicas, power_consumptions, power_cap_limit)
@@ -165,7 +167,10 @@ def monitor_power_usage(spec, status, **kwargs):
             name=name)
 
         deployment_name = scaled_object['spec']['scaleTargetRef']['name']
-        max_replicas = updated_max_replicas[deployment_name]
+        logging.info(
+            f"ScaleTargetRef: {scaled_object['spec']['scaleTargetRef']}")
+        max_replicas = updated_max_replicas.get(
+            deployment_name, 1)  # Default to 1 if not calculated
 
         # Update the maxReplicaCount in the ScaledObject
         scaled_object['spec']['maxReplicaCount'] = max_replicas
@@ -189,23 +194,24 @@ def monitor_power_usage(spec, status, **kwargs):
                                 current_replicas[deployment_name])
         metrics.update_power_consumption(deployment_name, power_consumption)
         forecast_power_consumption[
-            deployment_name] = power_consumption * updated_max_replicas[
-                deployment_name]
+            deployment_name] = power_consumption * updated_max_replicas.get(
+                deployment_name, 1)  # Default to 1 if not calculated
 
     for deployment_name, forecast_power in forecast_power_consumption.items():
         metrics.update_forecast_power_consumption(deployment_name,
                                                   forecast_power)
 
     # Update the status with the current and forecast power consumption
-    status['currentPowerConsumption'] = sum(power_consumptions.values())
-    status['forecastPowerConsumption'] = sum(
-        forecast_power_consumption.values())
+    patch['status'] = {
+        'currentPowerConsumption': sum(power_consumptions.values()),
+        'forecastPowerConsumption': sum(forecast_power_consumption.values())
+    }
 
 
 def calculate_max_replicas(power_cap_limit):
     # Implement the logic to calculate the maximum replicas based on the power cap limit
     # This is just a placeholder, replace it with your actual calculation
-    logging.debug(
+    logging.info(
         f"Calculating max replicas for power cap limit: {power_cap_limit}")
     return int(power_cap_limit / 100)
 
@@ -220,16 +226,18 @@ def get_current_replica_from_scale_object(api_instance, namespace,
 
 def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
-    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", pod_name=~"{deployment_name}-.*"}}[1m]))'
-    logging.debug(f"Power consumption query: {query}")
+    # query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", container_name="{deployment_name}"}}[5m]))'
+
+    # This is a temporary query that can get metrics from prom, the one above needs more work to fix.
+    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}"}}[5m]))'
+
+    logging.info(f"Power consumption query: {query}")
     # Execute the Prometheus query
     result = prom.custom_query(query=query)
-    logging.debug(f"Power consumption query result: {result}")
+    logging.info(f"Power consumption query result: {result}")
     # Extract the power consumption value from the query result
     power_consumption = 0
     if result:
-        # the result is in this format: [{'metric': {}, 'value': [1712173496.726, '0.26666666666666666']}]
-        # retrieve the value from the result
         power_consumption = float(result[0]['value'][1])
 
     return power_consumption

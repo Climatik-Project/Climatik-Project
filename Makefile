@@ -19,7 +19,7 @@ build-image: tests
 	docker build -t $(IMG):latest .
 
 build-image-ghcr: tests
-	docker build -t $(GHCR_IMG):latest .
+	docker build --no-cache -t $(GHCR_IMG):latest .
 
 push-image: build-image
 	docker push $(IMG):latest
