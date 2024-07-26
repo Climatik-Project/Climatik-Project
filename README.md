@@ -125,9 +125,9 @@ To install the power capping operator, follow these steps:
    For ScaleObjects:
 
    ```bash
+   kubectl get scaledobject --all-namespaces
    kubectl logs -n keda -l app=keda-operator
    ```
-
 
 7. Test Operator Locally:
 
@@ -139,7 +139,6 @@ To install the power capping operator, follow these steps:
 
    ```bash
    kubectl get crd
-   kubectl get scaledobject --all-namespaces
    ```
 
 9. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer

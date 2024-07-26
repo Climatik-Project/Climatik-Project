@@ -1,4 +1,4 @@
-.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr release release-ghcr deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
+.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr release release-ghcr clean-up deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
 
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
@@ -11,7 +11,7 @@ KIND_WORKER_NODES ?= 2
 
 .DEFAULT_GOAL := default
 
-default: tests build-image-ghcr push-image-ghcr modify-manager-yaml deploy-ghcr
+default: tests build-image-ghcr push-image-ghcr modify-manager-yaml clean-up deploy-ghcr
 
 tests:
 	PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover python/tests
@@ -32,6 +32,13 @@ release: push-image
 
 release-ghcr: push-image-ghcr
 
+clean-up: release-ghcr
+	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
+	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
+	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
+	kubectl delete scaledobject mistral-7b-scaleobject -n operator-powercapping-system --ignore-not-found
+	kubectl delete scaledobject llama2-7b-scaleobject -n operator-powercapping-system --ignore-not-found
+
 deploy: release
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
@@ -41,14 +48,7 @@ deploy: release
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
 
-deploy-ghcr: release-ghcr
-	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
-	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
-	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
-
-	kubectl delete scaledobject mistral-7b-scaleobject -n operator-powercapping-system --ignore-not-found
-	kubectl delete scaledobject llama2-7b-scaleobject -n operator-powercapping-system --ignore-not-found
-	
+deploy-ghcr: clean-up
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
@@ -78,6 +78,9 @@ build:
 
 run:
 	go run ./cmd/...
+
+local-run:
+	kopf run python/climatik_operator/operator.py
 
 deploy-config: modify-manager-yaml deploy
 deploy-config-ghcr: modify-manager-yaml deploy-ghcr
