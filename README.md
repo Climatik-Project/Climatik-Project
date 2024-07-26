@@ -122,6 +122,13 @@ To install the power capping operator, follow these steps:
    kubectl logs -n operator-powercapping-system operator-powercapping-controller-manager-${pod unique id} --all-containers=true
    ```
 
+   For ScaleObjects:
+
+   ```bash
+   kubectl logs -n keda -l app=keda-operator
+   ```
+
+
 7. Test Operator Locally:
 
    ```bash
