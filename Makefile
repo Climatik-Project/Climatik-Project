@@ -1,4 +1,4 @@
-.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr release release-ghcr clean-up deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
+.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr clean-up deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
 
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
@@ -19,7 +19,11 @@ build-image: tests
 	docker build -t $(IMG):latest .
 
 build-image-ghcr: tests
+ifeq ($(OPT), NO_CACHE_BUILD)
 	docker build --no-cache -t $(GHCR_IMG):latest .
+else
+	docker build -t $(GHCR_IMG):latest .
+endif
 
 push-image: build-image
 	docker push $(IMG):latest
@@ -28,16 +32,16 @@ push-image-ghcr: build-image-ghcr
 	echo $(GITHUB_PAT) | docker login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
 	docker push $(GHCR_IMG):latest
 
-release: push-image
-
-release-ghcr: push-image-ghcr
-
-clean-up: release-ghcr
+clean-up:
 	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
-	kubectl delete scaledobject mistral-7b-scaleobject -n operator-powercapping-system --ignore-not-found
-	kubectl delete scaledobject llama2-7b-scaleobject -n operator-powercapping-system --ignore-not-found
+	if kubectl get crd scaledobjects.keda.sh > /dev/null 2>&1; then \
+		kubectl delete scaledobject mistral-7b-scaleobject -n operator-powercapping-system --ignore-not-found; \
+		kubectl delete scaledobject llama2-7b-scaleobject -n operator-powercapping-system --ignore-not-found; \
+	else \
+		echo "ScaledObject resource type not found, ignoring."; \
+	fi
 
 deploy: release
 	kubectl apply -f config/crd/bases
@@ -69,8 +73,11 @@ modify-manager-yaml:
 
 cluster-up: ## setup a cluster for local development
 	CLUSTER_PROVIDER=$(CLUSTER_PROVIDER) \
-	VERSION=$(LOCAL_DEV_CLUSTER_VERSION) \
+	LOCAL_DEV_CLUSTER_VERSION=$(LOCAL_DEV_CLUSTER_VERSION) \
 	KIND_WORKER_NODES=$(KIND_WORKER_NODES) \
+	BUILD_CONTAINERIZED=$(BUILD_CONTAINERIZED) \
+	PROMETHEUS_ENABLE=true \
+	GRAFANA_ENABLE=true \
 	./hack/cluster.sh up
 
 build:
@@ -80,7 +87,7 @@ run:
 	go run ./cmd/...
 
 local-run:
-	kopf run python/climatik_operator/operator.py
+	kopf run python/climatik_operator/operator.py --verbose
 
 deploy-config: modify-manager-yaml deploy
 deploy-config-ghcr: modify-manager-yaml deploy-ghcr
