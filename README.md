@@ -105,7 +105,7 @@ To install the power capping operator, follow these steps:
    kubectl get deployments -n operator-powercapping-system
    kubectl get scaledobjects -n operator-powercapping-system
    kubectl describe scaledobject mistral-7b-scaleobject -n operator-powercapping-system
-   kubectl describe scaledobject mistral-7b-scaleobject -n operator-powercapping-system
+   kubectl describe scaledobject llama2-7b-scaleobject -n operator-powercapping-system
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
    kubectl describe pod -n operator-powercapping-system llama2-7b
    kubectl describe pod -n operator-powercapping-system mistral-7b

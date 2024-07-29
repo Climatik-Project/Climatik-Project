@@ -226,15 +226,13 @@ def get_current_replica_from_scale_object(api_instance, namespace,
 
 def get_power_consumption(deployment_name, namespace):
     # get kepler container joules total metric
-    # query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", container_name="{deployment_name}"}}[5m]))'
-
-    # This is a temporary query that can get metrics from prom, the one above needs more work to fix.
-    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}"}}[5m]))'
+    query = f'sum(rate(kepler_container_joules_total{{container_namespace="{namespace}", container_name="{deployment_name}"}}[5m]))'
 
     logging.info(f"Power consumption query: {query}")
     # Execute the Prometheus query
     result = prom.custom_query(query=query)
-    logging.info(f"Power consumption query result: {result}")
+    logging.info(
+        f"Power consumption query result for {deployment_name}: {result}")
     # Extract the power consumption value from the query result
     power_consumption = 0
     if result:
