@@ -61,7 +61,7 @@ type PowerCappingConfigReconciler struct {
 	Log              logr.Logger
 	PodInformer      cache.SharedIndexInformer
 	PrometheusClient prom_v1.API
-	AlertManager     alert.AlertManager
+	AlertService     *alert.AlertService
 }
 
 //+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs,verbs=get;list;watch;create;update;patch;delete
@@ -230,7 +230,7 @@ func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string
 }
 
 func (r *PowerCappingConfigReconciler) createAlert(pod *corev1.Pod, powerCap int, deviceLabels map[string]string) error {
-	return r.AlertManager.CreateAlert(pod.Name, powerCap, deviceLabels)
+	return r.AlertService.SendAlert(pod.Name, powerCap, deviceLabels)
 }
 
 func getEnv(key, fallback string) string {

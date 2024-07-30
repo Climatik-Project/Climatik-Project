@@ -3,8 +3,11 @@ module github.com/Climatik-Project/Climatik-Project
 go 1.21
 
 require (
+	github.com/joho/godotenv v1.5.1
 	github.com/onsi/ginkgo/v2 v2.15.0
 	github.com/onsi/gomega v1.31.0
+	github.com/slack-go/slack v0.13.1
+	github.com/stretchr/testify v1.9.0
 	k8s.io/apimachinery v0.29.0
 	k8s.io/client-go v0.29.0
 	sigs.k8s.io/controller-runtime v0.16.3
@@ -12,6 +15,9 @@ require (
 
 require (
 	github.com/evanphx/json-patch v5.8.1+incompatible // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240227224415-6ceb2ff114de // indirect
 )
 

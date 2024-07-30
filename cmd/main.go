@@ -36,6 +36,7 @@ import (
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	"github.com/Climatik-Project/Climatik-Project/internal/alert"
 	"github.com/Climatik-Project/Climatik-Project/internal/controller"
+	"github.com/joho/godotenv"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -71,6 +72,11 @@ func main() {
 	}
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
+
+	err := godotenv.Load()
+	if err != nil {
+		setupLog.Error(err, "Error loading .env file")
+	}
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
@@ -121,15 +127,32 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	alertManager, err := alert.NewAlertManager(alert.Prometheus, map[string]string{})
+
+	alertConfig := map[string]map[string]string{
+		"prometheus": {
+			"prometheusAddress": os.Getenv("PROMETHEUS_HOST"),
+		},
+		"gitops": {
+			"repoURL": os.Getenv("GITOPS_REPO_URL"),
+			"repoDir": os.Getenv("GITOPS_REPO_DIR"),
+		},
+		"slack": {
+			"webhookURL": os.Getenv("SLACK_WEBHOOK_URL"),
+			"token":      os.Getenv("SLACK_TOKEN"),
+			"channel":    os.Getenv("SLACK_CHANNEL"),
+		},
+	}
+
+	alertService, err := alert.NewAlertService(alertConfig)
 	if err != nil {
-		setupLog.Error(err, "unable to create alert manager")
+		setupLog.Error(err, "unable to create alert service")
 		os.Exit(1)
 	}
+
 	if err = (&controller.PowerCappingConfigReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
-		AlertManager: alertManager,
+		AlertService: alertService,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerCappingConfig")
 		os.Exit(1)
