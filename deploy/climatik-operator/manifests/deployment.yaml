@@ -73,6 +73,22 @@ spec:
             value: "0.8"
           - name: POWER_CAPPING_STRATEGY
             value: "maximize_replicas"
+          - name: GITOPS_REPO_URL
+            value: "https://github.com/Climatik-Project/Climatik-Project.git"
+          - name: GITOPS_REPO_DIR
+            value: "/app/climatik-gitops"
+          - name: SLACK_WEBHOOK_URL
+            valueFrom:
+              secretKeyRef:
+                name: slack-secrets
+                key: webhook-url
+          - name: SLACK_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: slack-secrets
+                key: token
+          - name: SLACK_CHANNEL
+            value: "#alerts"
 ---
 apiVersion: v1
 kind: ServiceAccount
