@@ -36,6 +36,7 @@ import (
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	"github.com/Climatik-Project/Climatik-Project/internal/alert"
 	"github.com/Climatik-Project/Climatik-Project/internal/controller"
+	alertWebhook "github.com/Climatik-Project/Climatik-Project/internal/webhook"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -126,6 +127,10 @@ func main() {
 		setupLog.Error(err, "unable to create alert manager")
 		os.Exit(1)
 	}
+	// create alert handler webhook
+	go func() {
+		alertWebhook.CreateWebhook(8080)
+	}()
 	if err = (&controller.PowerCappingConfigReconciler{
 		Client:       mgr.GetClient(),
 		Scheme:       mgr.GetScheme(),
