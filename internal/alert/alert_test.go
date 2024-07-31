@@ -31,8 +31,6 @@ func (m *MockSlackClient) UpdateMessage(channelID, timestamp string, options ...
 	return args.String(0), args.String(1), args.String(2), args.Error(3)
 }
 
-// MockPrometheusQuerier is a mock implementation of the PrometheusQuerier interface
-
 type MockPrometheusAPI struct {
 	mock.Mock
 }
