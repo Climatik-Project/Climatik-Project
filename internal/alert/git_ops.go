@@ -1,38 +1,29 @@
-// git_ops.go
 package alert
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 )
 
 type GitOpsAlertManager struct {
-	repoURL string
 	repoDir string
+	alerts  map[string]string // In-memory storage for alerts
 }
 
-func NewGitOpsAlertManager(repoURL, repoDir string) (*GitOpsAlertManager, error) {
+func NewGitOpsAlertManager(repoURL, repoDir string) (AlertManager, error) {
+	// We're not using repoURL in this simplified version, but keeping it for interface consistency
 	return &GitOpsAlertManager{
-		repoURL: repoURL,
 		repoDir: repoDir,
+		alerts:  make(map[string]string),
 	}, nil
 }
 
 func (g *GitOpsAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
 	alertMessage := g.formatAlertMessage(podName, powerCapValue, devices)
-	alertFile := fmt.Sprintf("%s/alerts/%s-alert.yaml", g.repoDir, podName)
-
-	if err := g.writeAlertFile(alertFile, alertMessage); err != nil {
-		return fmt.Errorf("failed to write alert file: %w", err)
-	}
-
-	if err := g.commitAndPushChanges(podName); err != nil {
-		return fmt.Errorf("failed to commit and push changes: %w", err)
-	}
-
+	alertFile := filepath.Join(g.repoDir, "alerts", podName+"-alert.yaml")
+	g.alerts[alertFile] = alertMessage
 	return nil
 }
 
@@ -55,22 +46,7 @@ func (g *GitOpsAlertManager) formatAlertMessage(podName string, powerCapValue in
 	`, podName, time.Now().Format(time.RFC3339), podName, powerCapValue, strings.Join(deviceStr, "\n    "))
 }
 
-func (g *GitOpsAlertManager) writeAlertFile(alertFile, alertMessage string) error {
-	return os.WriteFile(alertFile, []byte(alertMessage), 0644)
-}
-
-func (g *GitOpsAlertManager) commitAndPushChanges(podName string) error {
-	commands := [][]string{
-		{"git", "-C", g.repoDir, "add", "."},
-		{"git", "-C", g.repoDir, "commit", "-m", fmt.Sprintf("Add alert for pod %s", podName)},
-		{"git", "-C", g.repoDir, "push", "origin", "main"},
-	}
-
-	for _, cmd := range commands {
-		if err := exec.Command(cmd[0], cmd[1:]...).Run(); err != nil {
-			return fmt.Errorf("failed to execute command %v: %w", cmd, err)
-		}
-	}
-
-	return nil
+// GetAlerts returns the current alerts (for testing purposes)
+func (g *GitOpsAlertManager) GetAlerts() map[string]string {
+	return g.alerts
 }

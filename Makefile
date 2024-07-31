@@ -15,6 +15,8 @@ default: tests build-image-ghcr push-image-ghcr modify-manager-yaml clean-up dep
 
 tests:
 	PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover python/tests
+	go test -v ./internal/alert
+
 build-image: tests
 	docker build -t $(IMG):latest .
 

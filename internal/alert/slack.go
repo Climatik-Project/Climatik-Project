@@ -56,16 +56,6 @@ func (s *SlackAlertManager) CreateAlert(podName string, powerCapValue int, devic
 	return s.sendAPIAlert(alert)
 }
 
-func (s *SlackAlertManager) sendWebhookAlert(alert SlackAlert) error {
-	attachment := s.createAttachment(alert)
-
-	msg := slack.WebhookMessage{
-		Attachments: []slack.Attachment{attachment},
-	}
-
-	return slack.PostWebhook(s.webhookURL, &msg)
-}
-
 func (s *SlackAlertManager) sendAPIAlert(alert SlackAlert) error {
 	attachment := s.createAttachment(alert)
 
