@@ -4,14 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"path/filepath"
+	"os"
 
 	batchv1 "k8s.io/api/batch/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
-	"k8s.io/client-go/util/homedir"
+	"k8s.io/client-go/rest"
 )
 
 type KubernetesRunner struct {
@@ -20,13 +18,9 @@ type KubernetesRunner struct {
 
 func (r *KubernetesRunner) Run() error {
 	// Load the Kubernetes configuration
-	var kubeconfig string
-	if home := homedir.HomeDir(); home != "" {
-		kubeconfig = filepath.Join(home, ".kube", "config")
-	}
-	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
+	config, err := rest.InClusterConfig()
 	if err != nil {
-		return fmt.Errorf("failed to load kubeconfig: %v", err)
+		return fmt.Errorf("failed to load in-cluster config: %v", err)
 	}
 
 	// Create a new Kubernetes client
@@ -36,7 +30,7 @@ func (r *KubernetesRunner) Run() error {
 	}
 
 	// Read the job manifest
-	manifest, err := ioutil.ReadFile(r.JobManifestPath)
+	manifest, err := os.ReadFile(r.JobManifestPath)
 	if err != nil {
 		return fmt.Errorf("failed to read job manifest: %v", err)
 	}

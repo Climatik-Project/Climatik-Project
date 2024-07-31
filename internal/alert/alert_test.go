@@ -30,6 +30,11 @@ func (m *MockSlackClient) PostMessage(channelID string, options ...slack.MsgOpti
 	return args.String(0), args.String(1), args.Error(2)
 }
 
+func (m *MockSlackClient) UpdateMessage(channelID string, timestamp string, options ...slack.MsgOption) (string, string, string, error) {
+	args := m.Called(channelID, timestamp, options)
+	return args.String(0), args.String(1), args.String(2), args.Error(0)
+}
+
 func (m *MockAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
 	args := m.Called(podName, powerCapValue, devices)
 	return args.Error(0)
