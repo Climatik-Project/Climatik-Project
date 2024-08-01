@@ -3,6 +3,7 @@ package alert
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,8 +11,14 @@ import (
 
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/common/model"
 )
 
+type PrometheusQuerier interface {
+	Query(ctx context.Context, query string, ts time.Time) (model.Value, v1.Warnings, error)
+}
+
+// Update PrometheusAlertManager to use this interface
 type PrometheusAlertManager struct {
 	client          v1.API
 	alertmanagerURL string
