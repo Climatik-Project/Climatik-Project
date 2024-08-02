@@ -1,0 +1,34 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: set-cpu-frequency
+spec:
+  template:
+    spec:
+      containers:
+      - name: set-cpu-frequency
+        image: quay.io/centos/centos:stream9-minimal
+        command: ["/bin/sh", "-c"]
+        args:
+          - export CURRENT_FREQ=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq);
+            export MAX_FREQ=$(echo "$CURRENT_FREQ * {{.Percentage}} / 100" | bc);
+            echo "Current frequency: $CURRENT_FREQ";
+            echo "Setting max frequency to $MAX_FREQ";
+            echo $MAX_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq;
+            echo $MAX_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq;
+        securityContext:
+          privileged: true
+        env:
+        - name: PERCENTAGE
+          value: "{{.Percentage}}"
+        volumeMounts:
+        - name: sys
+          mountPath: /sys
+          readOnly: false
+      restartPolicy: Never
+      volumes:
+      - name: sys
+        hostPath:
+          path: /sys
+          type: Directory
+  backoffLimit: 3
