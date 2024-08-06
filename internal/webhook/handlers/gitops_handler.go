@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 
-	"github.com/Climatik-Project/Climatik-Project/internal/alert"
+	alert "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
 	"github.com/Climatik-Project/Climatik-Project/internal/webhook/runners"
 )
 

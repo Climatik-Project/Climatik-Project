@@ -40,7 +40,7 @@ import (
 
 	"github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
-	"github.com/Climatik-Project/Climatik-Project/internal/alert"
+	service "github.com/Climatik-Project/Climatik-Project/internal/alert"
 )
 
 const (
@@ -61,7 +61,7 @@ type PowerCappingConfigReconciler struct {
 	Log              logr.Logger
 	PodInformer      cache.SharedIndexInformer
 	PrometheusClient prom_v1.API
-	AlertService     *alert.AlertService
+	AlertService     *service.AlertService
 }
 
 //+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs,verbs=get;list;watch;create;update;patch;delete

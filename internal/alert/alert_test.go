@@ -61,21 +61,25 @@ func (m *MockGitOperations) Push(repoDir, remote, branch string) error {
 	return args.Error(0)
 }
 
-// TestSlackAlertManager tests the SlackAlertManager
-func TestSlackAlertManager(t *testing.T) {
-	mockClient := new(MockSlackClient)
-	manager := &SlackAlertManager{
-		webhookURL: "http://slack.com/webhook",
-		channel:    "#test-channel",
-		client:     mockClient,
-	}
+func TestSlackAlertManagerMocked(t *testing.T) {
+	// Create a test server that mimics Slack's webhook endpoint
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		assert.Equal(t, "POST", r.Method)
+		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
 
-	mockClient.On("PostMessage", "#test-channel", mock.Anything).Return("channel", "timestamp", nil)
-
-	err := manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	manager, err := NewSlackAlertManager(server.URL)
 	assert.NoError(t, err)
 
-	mockClient.AssertExpectations(t)
+	devices := map[string]string{
+		"CPU":    "80% usage",
+		"Memory": "70% usage",
+	}
+
+	err = manager.CreateAlert("test-pod", 100, devices)
+	assert.NoError(t, err)
 }
 
 // TestPrometheusAlertManager tests the PrometheusAlertManager
@@ -94,7 +98,9 @@ func TestFormatPrometheusAlert(t *testing.T) {
 	assert.Equal(t, "critical", alert.Labels["severity"])
 	assert.Equal(t, "test-pod", alert.Labels["pod"])
 	assert.Contains(t, alert.Annotations["description"], "100 watts")
-	assert.Contains(t, alert.Annotations["description"], "cpu:high,memory:low")
+	assert.Contains(t, alert.Annotations["description"], "cpu:high")
+	assert.Contains(t, alert.Annotations["description"], "memory:low")
+
 }
 
 func TestCreateAlert(t *testing.T) {
