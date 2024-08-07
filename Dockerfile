@@ -14,12 +14,12 @@ COPY go.sum go.sum
 RUN go mod download
 
 # Copy the Go source
-COPY cmd/main.go cmd/main.go
+COPY cmd/controller/main.go cmd/controller/main.go
 COPY api/ api/
 COPY internal/ internal/
 
 # Build the manager binary
-RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/main.go
+RUN CGO_ENABLED=0 GOOS=${TARGETOS:-linux} GOARCH=${TARGETARCH} go build -a -o manager cmd/controller/main.go
 
 # Use a multi-stage build to include the Python environment
 FROM python:3.11-slim AS python-builder

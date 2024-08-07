@@ -19,8 +19,8 @@ spec:
         image: progrium/stress
         resources:
           limits:
-            cpu: "1"  # limit to 1 CPU
-        command: ["stress", "--cpu", "1", "--timeout", "600"]
+            cpu: "4"  # increased CPU limit to 4
+        command: ["stress", "--cpu", "4", "--io", "2", "--vm", "2", "--vm-bytes", "256M", "--timeout", "600"]
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
