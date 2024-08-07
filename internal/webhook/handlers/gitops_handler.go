@@ -3,7 +3,7 @@ package handlers
 import (
 	"encoding/json"
 
-	alert "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
+	adapters "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
 	"github.com/Climatik-Project/Climatik-Project/internal/webhook/runners"
 )
 
@@ -12,7 +12,7 @@ type GitOpsAlertHandler struct {
 }
 
 func (h *GitOpsAlertHandler) HandleAlert(payload []byte) error {
-	var request alert.GitOpsAlertManager
+	var request adapters.GitOpsAlertManager
 	if err := json.Unmarshal(payload, &request); err != nil {
 		return err
 	}
