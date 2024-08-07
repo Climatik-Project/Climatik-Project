@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/Climatik-Project/Climatik-Project/internal/alert"
+	alert "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
 	"github.com/joho/godotenv"
 )
 
