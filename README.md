@@ -81,7 +81,13 @@ To install the power capping operator, follow these steps:
    export GITHUB_REPO=climatik-project
    ```
 
-3. Python Libraries:
+3. Create .env file with secrets:
+
+   ```bash
+   SLACK_WEBHOOK_URL=<your-slack-url-link>
+   ```
+
+4. Python Libraries:
 
    ```bash
    deactivate
@@ -90,14 +96,14 @@ To install the power capping operator, follow these steps:
    pip install -r python/climatik_operator/requirements.txt
    ```
 
-4. Install the necessary CRDs and operators:
+5. Install the necessary CRDs and operators:
 
    ```bash
    make cluster-up
    make
    ```
 
-5. Verify resources (Pod, Deployment, ScaledObject) exist:
+6. Verify resources (Pod, Deployment, ScaledObject) exist:
 
    ```bash
    kubectl get pods --all-namespaces
@@ -111,7 +117,7 @@ To install the power capping operator, follow these steps:
    kubectl describe pod -n operator-powercapping-system mistral-7b
    ```
 
-6. Check logs for containers:
+7. Check logs for containers:
 
    For manager:
 
@@ -132,13 +138,13 @@ To install the power capping operator, follow these steps:
    kubectl logs -n keda -l app=keda-operator
    ```
 
-7. Test Operator Locally:
+8. Test Operator Locally:
 
    ```bash
    cd python/climatik_operator && kopf run operator.py
    ```
 
-8. Check CRD:
+9. Check CRD:
 
    ```bash
    kubectl get crd
