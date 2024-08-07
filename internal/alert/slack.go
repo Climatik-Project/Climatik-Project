@@ -1,23 +1,12 @@
 package alert
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"time"
-
-	"github.com/slack-go/slack"
 )
-
-type SlackClient interface {
-	PostMessage(channelID string, options ...slack.MsgOption) (string, string, error)
-	UpdateMessage(channelID, timestamp string, options ...slack.MsgOption) (string, string, string, error)
-}
-
-type SlackAlertManager struct {
-	webhookURL string
-	channel    string
-	client     SlackClient
-}
 
 type AlertLevel string
 
@@ -36,11 +25,13 @@ type SlackAlert struct {
 	Timestamp     time.Time
 }
 
-func NewSlackAlertManager(webhookURL, token, channel string) (*SlackAlertManager, error) {
+type SlackAlertManager struct {
+	webhookURL string
+}
+
+func NewSlackAlertManager(webhookURL string) (*SlackAlertManager, error) {
 	return &SlackAlertManager{
 		webhookURL: webhookURL,
-		channel:    channel,
-		client:     slack.New(token),
 	}, nil
 }
 
@@ -53,29 +44,30 @@ func (s *SlackAlertManager) CreateAlert(podName string, powerCapValue int, devic
 		Level:         AlertLevelWarning,
 		Timestamp:     time.Now(),
 	}
-	return s.sendAPIAlert(alert)
+	return s.sendWebhookAlert(alert)
 }
 
-func (s *SlackAlertManager) sendAPIAlert(alert SlackAlert) error {
+func (s *SlackAlertManager) sendWebhookAlert(alert SlackAlert) error {
+	message := s.createWebhookMessage(alert)
+	return s.sendSlackWebhook(message)
+}
+
+func (s *SlackAlertManager) createWebhookMessage(alert SlackAlert) map[string]interface{} {
 	attachment := s.createAttachment(alert)
-
-	_, _, err := s.client.PostMessage(
-		s.channel,
-		slack.MsgOptionAttachments(attachment),
-		slack.MsgOptionAsUser(true),
-	)
-
-	return err
+	message := map[string]interface{}{
+		"attachments": []interface{}{attachment},
+	}
+	return message
 }
 
-func (s *SlackAlertManager) createAttachment(alert SlackAlert) slack.Attachment {
-	return slack.Attachment{
-		Color:  getColorForAlertLevel(alert.Level),
-		Title:  fmt.Sprintf("Power Cap Alert for Pod %s", alert.PodName),
-		Text:   fmt.Sprintf("Power cap value of %d exceeded. Current power: %.2f", alert.PowerCapValue, alert.CurrentPower),
-		Fields: getFieldsForDevices(alert.Devices),
-		Footer: "Climatik Power Management",
-		Ts:     json.Number(fmt.Sprintf("%d", alert.Timestamp.Unix())),
+func (s *SlackAlertManager) createAttachment(alert SlackAlert) map[string]interface{} {
+	return map[string]interface{}{
+		"color":  getColorForAlertLevel(alert.Level),
+		"title":  fmt.Sprintf("Power Cap Alert for Pod %s", alert.PodName),
+		"text":   fmt.Sprintf("Power cap value of %d exceeded. Current power: %.2f", alert.PowerCapValue, alert.CurrentPower),
+		"fields": getFieldsForDevices(alert.Devices),
+		"footer": "Climatik Power Management",
+		"ts":     alert.Timestamp.Unix(),
 	}
 }
 
@@ -92,46 +84,33 @@ func getColorForAlertLevel(level AlertLevel) string {
 	}
 }
 
-func getFieldsForDevices(devices map[string]string) []slack.AttachmentField {
-	var fields []slack.AttachmentField
+func getFieldsForDevices(devices map[string]string) []map[string]interface{} {
+	var fields []map[string]interface{}
 	for device, value := range devices {
-		fields = append(fields, slack.AttachmentField{
-			Title: device,
-			Value: value,
-			Short: true,
+		fields = append(fields, map[string]interface{}{
+			"title": device,
+			"value": value,
+			"short": true,
 		})
 	}
 	return fields
 }
 
-func (s *SlackAlertManager) UpdateAlert(alertTimestamp string, updatedAlert SlackAlert) error {
-	attachment := s.createAttachment(updatedAlert)
-	attachment.Title = fmt.Sprintf("Updated: %s", attachment.Title)
-	attachment.Footer = "Climatik Power Management (Updated)"
-
-	_, _, _, err := s.client.UpdateMessage(
-		s.channel,
-		alertTimestamp,
-		slack.MsgOptionAttachments(attachment),
-	)
-
-	return err
-}
-
-func (s *SlackAlertManager) ClearAlert(alertTimestamp string, podName string) error {
-	attachment := slack.Attachment{
-		Color:  "#36a64f", // Green
-		Title:  fmt.Sprintf("Cleared: Power Cap Alert for Pod %s", podName),
-		Text:   "The power consumption has returned to normal levels.",
-		Footer: "Climatik Power Management (Cleared)",
-		Ts:     json.Number(alertTimestamp),
+func (s *SlackAlertManager) sendSlackWebhook(message map[string]interface{}) error {
+	jsonMessage, err := json.Marshal(message)
+	if err != nil {
+		return err
 	}
 
-	_, _, _, err := s.client.UpdateMessage(
-		s.channel,
-		alertTimestamp,
-		slack.MsgOptionAttachments(attachment),
-	)
+	resp, err := http.Post(s.webhookURL, "application/json", bytes.NewBuffer(jsonMessage))
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 
-	return err
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error sending message to Slack: %s", resp.Status)
+	}
+
+	return nil
 }

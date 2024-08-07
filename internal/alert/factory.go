@@ -20,7 +20,7 @@ func NewAlertManager(managerType AlertManagerType, config map[string]string) (Al
 	case GitOps:
 		return NewGitOpsAlertManager(config["repoURL"], config["repoDir"])
 	case Slack:
-		return NewSlackAlertManager(config["webhookURL"], config["token"], config["channel"])
+		return NewSlackAlertManager(config["webhookURL"])
 	default:
 		return nil, fmt.Errorf("unsupported alert manager type: %s", managerType)
 	}
