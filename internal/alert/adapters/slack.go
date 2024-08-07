@@ -1,4 +1,4 @@
-package alert
+package adapters
 
 import (
 	"bytes"

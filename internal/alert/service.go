@@ -2,7 +2,7 @@
 package alert
 
 type AlertService struct {
-	pubsub *PubSub
+	Pubsub *PubSub
 }
 
 func NewAlertService(config map[string]map[string]string) (*AlertService, error) {
@@ -10,10 +10,10 @@ func NewAlertService(config map[string]map[string]string) (*AlertService, error)
 	if err != nil {
 		return nil, err
 	}
-	return &AlertService{pubsub: pubsub}, nil
+	return &AlertService{Pubsub: pubsub}, nil
 }
 
 func (s *AlertService) SendAlert(podName string, powerCapValue int, devices map[string]string) error {
-	s.pubsub.Publish("alerts", podName, powerCapValue, devices)
+	s.Pubsub.Publish("alerts", podName, powerCapValue, devices)
 	return nil
 }

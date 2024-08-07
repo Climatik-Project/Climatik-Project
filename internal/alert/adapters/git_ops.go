@@ -1,4 +1,4 @@
-package alert
+package adapters
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ type GitOpsAlertManager struct {
 	alerts  map[string]string // In-memory storage for alerts
 }
 
-func NewGitOpsAlertManager(repoURL, repoDir string) (AlertManager, error) {
+func NewGitOpsAlertManager(repoURL, repoDir string) (*GitOpsAlertManager, error) {
 	// We're not using repoURL in this simplified version, but keeping it for interface consistency
 	return &GitOpsAlertManager{
 		repoDir: repoDir,
