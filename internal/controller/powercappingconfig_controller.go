@@ -21,7 +21,6 @@ import (
 	"os"
 	"time"
 
-	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 
@@ -52,13 +51,13 @@ const (
 
 var (
 	PrometheusURL = getEnv("PROM_URL", "http://prometheus:9090")
+	log           = ctrl.Log.WithName("controller")
 )
 
 // PowerCappingConfigReconciler reconciles a PowerCappingConfig object
 type PowerCappingConfigReconciler struct {
 	client.Client
 	Scheme           *runtime.Scheme
-	Log              logr.Logger
 	PodInformer      cache.SharedIndexInformer
 	PrometheusClient prom_v1.API
 	AlertService     *service.AlertService
@@ -71,8 +70,6 @@ type PowerCappingConfigReconciler struct {
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
 func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("powercappingconfig", req.NamespacedName)
-
 	// Fetch the PowerCappingConfig instance
 	powerCappingConfig := &powercappingv1alpha1.PowerCappingConfig{}
 	err := r.Get(ctx, req.NamespacedName, powerCappingConfig)
@@ -89,15 +86,17 @@ func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.R
 }
 
 func (r *PowerCappingConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	log.Info("Setting up PowerCappingConfigReconciler")
 	// Create a new Kubernetes client
 	kubeClient, err := kubernetes.NewForConfig(mgr.GetConfig())
 	if err != nil {
+		log.Info("Failed to create Kubernetes client")
 		return err
 	}
 
 	// Create a new shared informer factory
 	factory := informers.NewSharedInformerFactory(kubeClient, 0)
-
+	log.Info("Shared informer factory created")
 	// Create a new pod informer
 	r.PodInformer = factory.Core().V1().Pods().Informer()
 
@@ -109,7 +108,7 @@ func (r *PowerCappingConfigReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		},
 		DeleteFunc: r.handlePodDelete,
 	})
-
+	log.Info("event handler created")
 	// Add the shared informer factory to the manager's runnable list
 	err = mgr.Add(manager.RunnableFunc(func(ctx context.Context) error {
 		factory.Start(ctx.Done())
@@ -118,11 +117,15 @@ func (r *PowerCappingConfigReconciler) SetupWithManager(mgr ctrl.Manager) error 
 	if err != nil {
 		return err
 	}
-
+	log.Info("Pod informer created")
+	// start the informer
+	go factory.Start(context.Background().Done())
+	log.Info("Pod informer started")
 	// Wait for the caches to be synced before starting the reconciler
 	if ok := cache.WaitForCacheSync(context.Background().Done(), r.PodInformer.HasSynced); !ok {
 		return fmt.Errorf("failed to wait for caches to sync")
 	}
+	log.Info("Cache synced")
 	promClient, err := prom_api.NewClient(prom_api.Config{
 		Address: PrometheusURL,
 	})
@@ -130,34 +133,34 @@ func (r *PowerCappingConfigReconciler) SetupWithManager(mgr ctrl.Manager) error 
 		return err
 	}
 	r.PrometheusClient = prom_v1.NewAPI(promClient)
-
+	log.Info("Prometheus client created", "url", PrometheusURL)
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&powercappingv1alpha1.PowerCappingConfig{}).
 		Complete(r)
 }
 
-func (r *PowerCappingConfigReconciler) getKeplerMetrics(ctx context.Context, podName, label string) (float64, string, error) {
-	query := fmt.Sprintf(`kepler_container_%s_joules_total{pod='%s'}`, podName, label)
+func (r *PowerCappingConfigReconciler) getKeplerMetrics(ctx context.Context, podName, device string) (float64, string, error) {
+	query := fmt.Sprintf(`kepler_container_%s_joules_total{pod='%s'}`, device, podName)
 	result, warnings, err := r.PrometheusClient.Query(ctx, query, time.Now())
 	if err != nil {
 		return 0, "", err
 	}
 	if len(warnings) > 0 {
-		r.Log.Info("Prometheus query warnings", "warnings", warnings)
+		log.Info("Prometheus query warnings", "warnings", warnings)
 	}
 	if result.Type() == model.ValVector {
 		vector := result.(model.Vector)
 		if len(vector) > 0 {
 			for _, sample := range vector {
 				for labelName, labelValue := range sample.Metric {
-					if string(labelName) == label {
+					if string(labelName) == device {
 						return float64(sample.Value), string(labelValue), nil
 					}
 				}
 			}
 		}
 	}
-	return 0, "", fmt.Errorf("no data with gpu label returned from Prometheus query")
+	return 0, "", fmt.Errorf("no data with device %s returned from Prometheus query", device)
 }
 
 func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
@@ -175,21 +178,21 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 			Namespace: pod.Namespace,
 		}, &powercappingv1alpha1.PowerCappingConfig{})
 		if obj != nil {
-			r.Log.Error(obj, "Failed to get PowerCappingConfig")
+			log.Error(obj, "Failed to get PowerCappingConfig")
 			return
 		}
 		powerCappingConfig, ok := obj.(*powercappingv1alpha1.PowerCappingConfig)
 		if !ok {
-			r.Log.Error(fmt.Errorf("Failed to cast PowerCappingConfig"), "Failed to cast PowerCappingConfig")
+			log.Error(fmt.Errorf("Failed to cast PowerCappingConfig"), "Failed to cast PowerCappingConfig")
 			return
 		}
 
-		r.Log.Info("PowerCappingConfig", "powerCapLabel", powerCapLabel)
+		log.Info("PowerCappingConfig", "powerCapLabel", powerCapLabel)
 		// fetch the observation window from the CRD
 		// watch the pod power usage for the observation window
 		switch powerCappingConfig.Spec.PowerCappingSpec.Kind {
 		case v1alpha1.RelativePowerCapOfPeakPowerConsumptionInPercentage:
-			r.Log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
+			log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
 			duration = time.Duration(powerCappingConfig.Spec.PowerCappingSpec.RelativePowerCapInPercentageSpec.SampleWindow) * time.Second
 		}
 	}
@@ -200,7 +203,7 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 
 		peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
 		if err != nil {
-			r.Log.Error(err, "Failed to watch pod power usage")
+			log.Error(err, "Failed to watch pod power usage")
 			return
 		}
 
@@ -221,7 +224,7 @@ func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string
 	for _, v := range []string{"package", "gpu"} {
 		_, label, err := r.getKeplerMetrics(ctx, pod.Name, v)
 		if err != nil {
-			r.Log.Error(err, "Failed to get Kepler metrics")
+			log.Error(err, "Failed to get Kepler metrics")
 			return devices
 		}
 		devices[v] = label
@@ -270,7 +273,7 @@ func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, po
 		return 0, err
 	}
 	if len(warnings) > 0 {
-		r.Log.Info("Prometheus query warnings", "warnings", warnings)
+		log.Info("Prometheus query warnings", "warnings", warnings)
 	}
 	if result.Type() == model.ValVector {
 		vector := result.(model.Vector)

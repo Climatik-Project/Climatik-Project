@@ -90,7 +90,7 @@ func main() {
 		setupLog.Info("disabling http/2")
 		c.NextProtos = []string{"http/1.1"}
 	}
-
+	setupLog.Info("http/2 enabled", "enabled", enableHTTP2)
 	tlsOpts := []func(*tls.Config){}
 	if !enableHTTP2 {
 		tlsOpts = append(tlsOpts, disableHTTP2)
@@ -127,6 +127,7 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	setupLog.Info("manager created")
 
 	alertConfig := map[string]map[string]string{
 		"prometheus": {
@@ -148,15 +149,21 @@ func main() {
 		setupLog.Error(err, "unable to create alert service")
 		os.Exit(1)
 	}
-
-	if err = (&controller.PowerCappingConfigReconciler{
-		Client:       mgr.GetClient(),
-		Scheme:       mgr.GetScheme(),
+	setupLog.Info("alert service created")
+	client := mgr.GetClient()
+	scheme := mgr.GetScheme()
+	setupLog.Info("client and scheme created")
+	pcController := (&controller.PowerCappingConfigReconciler{
+		Client:       client,
+		Scheme:       scheme,
 		AlertService: alertService,
-	}).SetupWithManager(mgr); err != nil {
+	})
+	setupLog.Info("reconciler created")
+	if err = pcController.SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "PowerCappingConfig")
 		os.Exit(1)
 	}
+	setupLog.Info("controller created")
 	//+kubebuilder:scaffold:builder
 
 	// if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
