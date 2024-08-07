@@ -1,5 +1,3 @@
-.PHONY: tests build-image build-image-ghcr push-image push-image-ghcr clean-up deploy deploy-ghcr cluster-up build run modify-manager-yaml deploy-config deploy-config-ghcr
-
 # Set variables
 IMG ?= quay.io/climatik-project/climatik-operator
 GITHUB_REPO ?= climatik-project
@@ -9,32 +7,73 @@ CLUSTER_PROVIDER ?= kind
 LOCAL_DEV_CLUSTER_VERSION ?= main
 KIND_WORKER_NODES ?= 2
 
+# Go related variables
+GOENV = GO111MODULE="" \
+        GOOS=$(shell go env GOOS) \
+        GOARCH=$(shell go env GOARCH)
+
+# Output directory
+OUTPUT_DIR := _output
+CROSS_BUILD_BINDIR := $(OUTPUT_DIR)/bin
+
+.DEFAULT_GOAL := help
+
+##@ General
+
+.PHONY: help
+help: ## Display this help.
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+
+##@ Development
 .DEFAULT_GOAL := default
 
-default: tests build-image-ghcr push-image-ghcr modify-manager-yaml clean-up deploy-ghcr
+.PHONY: default
+default: tests build-image-ghcr push-image-ghcr modify-manager-yaml clean-up deploy-ghcr ## Run default targets
 
-tests:
+.PHONY: tests
+tests: ## Run tests
 	PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover python/tests
 	go test -v ./internal/alert/tests
 
-build-image: tests
+.PHONY: build
+build: ## Build the project
+	$(GOENV) go build -o bin/manager ./cmd/...
+
+.PHONY: run
+run: ## Run the project
+	$(GOENV) go run ./cmd/...
+
+.PHONY: local-run
+local-run: ## Run the project locally
+	kopf run python/climatik_operator/operator.py --verbose
+
+##@ Build
+
+.PHONY: build-image
+build-image: tests ## Build Docker image
 	docker build -t $(IMG):latest .
 
-build-image-ghcr: tests
+.PHONY: build-image-ghcr
+build-image-ghcr: tests ## Build Docker image for GitHub Container Registry
 ifeq ($(OPT), NO_CACHE_BUILD)
 	docker build --no-cache -t $(GHCR_IMG):latest .
 else
 	docker build -t $(GHCR_IMG):latest .
 endif
 
-push-image: build-image
+##@ Deployment
+
+.PHONY: push-image
+push-image: build-image ## Push Docker image
 	docker push $(IMG):latest
 
-push-image-ghcr: build-image-ghcr
+.PHONY: push-image-ghcr
+push-image-ghcr: build-image-ghcr ## Push Docker image to GitHub Container Registry
 	echo $(GITHUB_PAT) | docker login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
 	docker push $(GHCR_IMG):latest
 
-clean-up:
+.PHONY: clean-up
+clean-up: ## Clean up deployments
 	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
@@ -45,7 +84,8 @@ clean-up:
 		echo "ScaledObject resource type not found, ignoring."; \
 	fi
 
-deploy: release
+.PHONY: deploy
+deploy: release ## Deploy to Kubernetes
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
@@ -54,7 +94,8 @@ deploy: release
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
 
-deploy-ghcr: clean-up
+.PHONY: deploy-ghcr
+deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
@@ -64,16 +105,17 @@ deploy-ghcr: clean-up
 	kubectl apply -f deploy/climatik-operator/manifests/deployment-llama2-7b.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/scaleobject.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
-
 	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
-	
-modify-manager-yaml:
+
+.PHONY: modify-manager-yaml
+modify-manager-yaml: ## Modify manager.yaml
 	sed -i.bak "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" config/manager/manager.yaml && rm config/manager/manager.yaml.bak
 	sed -i.bak "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g" config/manager/manager.yaml && rm config/manager/manager.yaml.bak
 
-cluster-up: ## setup a cluster for local development
+.PHONY: cluster-up
+cluster-up: ## Setup a cluster for local development
 	CLUSTER_PROVIDER=$(CLUSTER_PROVIDER) \
 	LOCAL_DEV_CLUSTER_VERSION=$(LOCAL_DEV_CLUSTER_VERSION) \
 	KIND_WORKER_NODES=$(KIND_WORKER_NODES) \
@@ -82,14 +124,16 @@ cluster-up: ## setup a cluster for local development
 	GRAFANA_ENABLE=true \
 	./hack/cluster.sh up
 
-build:
-	go build -o bin/manager ./cmd/...
+.PHONY: deploy-config
+deploy-config: modify-manager-yaml deploy ## Deploy with modified config
 
-run:
-	go run ./cmd/...
+.PHONY: deploy-config-ghcr
+deploy-config-ghcr: modify-manager-yaml deploy-ghcr ## Deploy with modified config using GitHub Container Registry
 
-local-run:
-	kopf run python/climatik_operator/operator.py --verbose
+##@ Secrets
 
-deploy-config: modify-manager-yaml deploy
-deploy-config-ghcr: modify-manager-yaml deploy-ghcr
+.PHONY: create-slack-secret
+create-slack-secret: ## Create Slack secret from .env file
+	kubectl delete secret slack-secrets -n operator-powercapping-system --ignore-not-found
+	kubectl create secret generic slack-secrets --from-env-file=.env -n operator-powercapping-system
+	@echo "Slack secret has been recreated in the operator-powercapping-system namespace."

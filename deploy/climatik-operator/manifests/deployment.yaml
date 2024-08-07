@@ -81,14 +81,7 @@ spec:
             valueFrom:
               secretKeyRef:
                 name: slack-secrets
-                key: webhook-url
-          - name: SLACK_TOKEN
-            valueFrom:
-              secretKeyRef:
-                name: slack-secrets
-                key: token
-          - name: SLACK_CHANNEL
-            value: "#alerts"
+                key: SLACK_WEBHOOK_URL
 ---
 apiVersion: v1
 kind: ServiceAccount
