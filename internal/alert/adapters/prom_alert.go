@@ -1,5 +1,5 @@
 // prom_alert.go
-package alert
+package adapters
 
 import (
 	"bytes"
@@ -21,7 +21,7 @@ type PrometheusQuerier interface {
 // Update PrometheusAlertManager to use this interface
 type PrometheusAlertManager struct {
 	client          v1.API
-	alertmanagerURL string
+	AlertmanagerURL string
 }
 
 func NewPrometheusAlertManager(prometheusAddress string) (*PrometheusAlertManager, error) {
@@ -31,19 +31,19 @@ func NewPrometheusAlertManager(prometheusAddress string) (*PrometheusAlertManage
 	}
 	return &PrometheusAlertManager{
 		client:          v1.NewAPI(client),
-		alertmanagerURL: prometheusAddress + "/api/v1/alerts",
+		AlertmanagerURL: prometheusAddress + "/api/v1/alerts",
 	}, nil
 }
 
 func (p *PrometheusAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
-	alert := p.formatPrometheusAlert(podName, powerCapValue, devices)
-	if err := p.sendAlertToPrometheus(alert); err != nil {
+	alert := p.FormatPrometheusAlert(podName, powerCapValue, devices)
+	if err := p.SendAlertToPrometheus(alert); err != nil {
 		return fmt.Errorf("failed to send alert to Prometheus: %w", err)
 	}
 	return nil
 }
 
-func (p *PrometheusAlertManager) formatPrometheusAlert(podName string, powerCapValue int, devices map[string]string) PrometheusAlert {
+func (p *PrometheusAlertManager) FormatPrometheusAlert(podName string, powerCapValue int, devices map[string]string) PrometheusAlert {
 	deviceStr := ""
 	for device, value := range devices {
 		deviceStr += fmt.Sprintf("%s:%s,", device, value)
@@ -64,13 +64,13 @@ func (p *PrometheusAlertManager) formatPrometheusAlert(podName string, powerCapV
 	}
 }
 
-func (p *PrometheusAlertManager) sendAlertToPrometheus(alert PrometheusAlert) error {
+func (p *PrometheusAlertManager) SendAlertToPrometheus(alert PrometheusAlert) error {
 	alertBody, err := json.Marshal([]PrometheusAlert{alert})
 	if err != nil {
 		return fmt.Errorf("failed to marshal alert: %w", err)
 	}
 
-	req, err := http.NewRequest("POST", p.alertmanagerURL, bytes.NewBuffer(alertBody))
+	req, err := http.NewRequest("POST", p.AlertmanagerURL, bytes.NewBuffer(alertBody))
 	if err != nil {
 		return fmt.Errorf("failed to create request: %w", err)
 	}

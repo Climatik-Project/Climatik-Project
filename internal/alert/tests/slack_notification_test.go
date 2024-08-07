@@ -7,6 +7,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
+
+	adapters "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
 )
 
 func TestSlackAlertActualNotification(t *testing.T) {
@@ -21,7 +23,7 @@ func TestSlackAlertActualNotification(t *testing.T) {
 	webhookURL := os.Getenv("SLACK_WEBHOOK_URL")
 	assert.NotEmpty(t, webhookURL, "SLACK_WEBHOOK_URL is not set")
 
-	manager, err := NewSlackAlertManager(webhookURL)
+	manager, err := adapters.NewSlackAlertManager(webhookURL)
 	assert.NoError(t, err)
 
 	devices := map[string]string{
