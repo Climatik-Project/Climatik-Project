@@ -1,21 +1,21 @@
-# deployment-llama2-7b.yaml
+# deployment-stress.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: llama2-7b
+  name: stress
   namespace: operator-powercapping-system
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: llama2-7b
+      app: stress
   template:
     metadata:
       labels:
-        app: llama2-7b
+        app: stress
     spec:
       containers:
-      - name: llama2-7b
+      - name: stress
         image: progrium/stress
         resources:
           limits:

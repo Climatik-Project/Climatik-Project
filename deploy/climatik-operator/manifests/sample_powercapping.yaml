@@ -18,3 +18,7 @@ spec:
       kind: "ScaledObject"
       metadata:
         name: "llama2-7b-scaleobject"
+    - apiVersion: "keda.sh/v1alpha1"
+      kind: "ScaledObject"
+      metadata:
+        name: "stress-scaleobject"

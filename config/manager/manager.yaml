@@ -70,7 +70,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: ghcr.io/${GITHUB_USERNAME}/climatik-project:latest # Use placeholder
+        image: $(IMAGE_NAME)
         imagePullPolicy: IfNotPresent
         name: manager
         securityContext:
@@ -108,5 +108,11 @@ spec:
         - containerPort: 8080
           protocol: TCP
           name: metrics
+        envFrom:
+        - secretRef:
+            name: env-secrets
+        env:
+        - name: IMAGE_NAME
+          value: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO):latest
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

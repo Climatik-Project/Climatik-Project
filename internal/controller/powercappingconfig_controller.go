@@ -185,7 +185,7 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 		}
 		powerCappingConfig, ok := obj.(*powercappingv1alpha1.PowerCappingConfig)
 		if !ok {
-			log.Error(fmt.Errorf("Failed to cast PowerCappingConfig"), "Failed to cast PowerCappingConfig")
+			log.Error(fmt.Errorf("failed to cast PowerCappingConfig"), "failed to cast PowerCappingConfig")
 			return
 		}
 
