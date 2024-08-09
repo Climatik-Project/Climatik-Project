@@ -73,21 +73,16 @@ To install the power capping operator, follow these steps:
    git clone https://github.com/Climatik-Project/Climatik-Project
    ```
 
-2. Set up Github PAT to use ghcr.io
+2. Create .env file in root folder with secrets
 
    ```bash
-   export GITHUB_PAT=<your-personal-access-token>
-   export GITHUB_USERNAME=<your-username>
-   export GITHUB_REPO=climatik-project
+   SLACK_WEBHOOK_URL=<your-slack-webhook-url>
+   GITHUB_USERNAME=<your-username>
+   GITHUB_REPO=<your-repo-name>
+   GITHUB_PAT=<your-github-pat>
    ```
 
-3. Create .env file with secrets:
-
-   ```bash
-   SLACK_WEBHOOK_URL=<your-slack-url-link>
-   ```
-
-4. Python Libraries:
+3. Python Libraries:
 
    ```bash
    deactivate
@@ -96,14 +91,14 @@ To install the power capping operator, follow these steps:
    pip install -r python/climatik_operator/requirements.txt
    ```
 
-5. Install the necessary CRDs and operators:
+4. Install the necessary CRDs and operators:
 
    ```bash
    make cluster-up
    make
    ```
 
-6. Verify resources (Pod, Deployment, ScaledObject) exist:
+5. Verify resources (Pod, Deployment, ScaledObject) exist:
 
    ```bash
    kubectl get pods --all-namespaces
@@ -117,7 +112,7 @@ To install the power capping operator, follow these steps:
    kubectl describe pod -n operator-powercapping-system mistral-7b
    ```
 
-7. Check logs for containers:
+6. Check logs for containers:
 
    For manager:
 
@@ -125,7 +120,12 @@ To install the power capping operator, follow these steps:
    kubectl logs -n operator-powercapping-system operator-powercapping-controller-manager-${pod unique id} -c manager
    ```
 
-   For all:
+   ```bash
+   kubectl exec -it -n operator-powercapping-system deployment/llama2-7b -- /bin/sh
+   ps aux
+   ```
+
+   For All:
 
    ```bash
    kubectl logs -n operator-powercapping-system operator-powercapping-controller-manager-${pod unique id} --all-containers=true
@@ -138,13 +138,13 @@ To install the power capping operator, follow these steps:
    kubectl logs -n keda -l app=keda-operator
    ```
 
-8. Test Operator Locally:
+7. Test Operator Locally:
 
    ```bash
    cd python/climatik_operator && kopf run operator.py
    ```
 
-9. Check CRD:
+8. Check CRD:
 
    ```bash
    kubectl get crd

@@ -80,7 +80,7 @@ spec:
           - name: SLACK_WEBHOOK_URL
             valueFrom:
               secretKeyRef:
-                name: slack-secrets
+                name: env-secrets
                 key: SLACK_WEBHOOK_URL
 ---
 apiVersion: v1

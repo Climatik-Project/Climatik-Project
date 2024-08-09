@@ -19,7 +19,7 @@ spec:
         resources:
           limits:
             cpu: "1"  # limit to 1 CPU
-        command: ["stress", "--cpu", "1", "--timeout", "600"]
+        command: ["stress", "--cpu", "1"]
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"
