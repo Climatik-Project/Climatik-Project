@@ -18,6 +18,8 @@ CROSS_BUILD_BINDIR := $(OUTPUT_DIR)/bin
 
 .DEFAULT_GOAL := help
 
+export CTR_CMD     ?= $(or $(shell command -v podman), $(shell command -v docker))
+
 ##@ General
 
 .PHONY: help
@@ -51,26 +53,26 @@ local-run: ## Run the project locally
 
 .PHONY: build-image
 build-image: tests ## Build Docker image
-	docker build -t $(IMG):latest .
+	$(CTR_CMD) build -t $(IMG):latest .
 
 .PHONY: build-image-ghcr
 build-image-ghcr: tests ## Build Docker image for GitHub Container Registry
 ifeq ($(OPT), NO_CACHE_BUILD)
-	docker build --no-cache -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build --no-cache -t $(GHCR_IMG):latest .
 else
-	docker build -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build -t $(GHCR_IMG):latest .
 endif
 
 ##@ Deployment
 
 .PHONY: push-image
 push-image: build-image ## Push Docker image
-	docker push $(IMG):latest
+	$(CTR_CMD) push $(IMG):latest
 
 .PHONY: push-image-ghcr
 push-image-ghcr: build-image-ghcr ## Push Docker image to GitHub Container Registry
-	echo $(GITHUB_PAT) | docker login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
-	docker push $(GHCR_IMG):latest
+	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
+	$(CTR_CMD) push $(GHCR_IMG):latest
 
 .PHONY: clean-up
 clean-up: ## Clean up deployments
@@ -85,7 +87,7 @@ clean-up: ## Clean up deployments
 	fi
 
 .PHONY: deploy
-deploy: release ## Deploy to Kubernetes
+deploy: ## Deploy to Kubernetes
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
