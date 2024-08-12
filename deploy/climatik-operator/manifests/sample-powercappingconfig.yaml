@@ -11,8 +11,6 @@ spec:
     relativePowerCapInPercentage:
       powerCapPercentage: 80
       sampleWindow: 30
-  temperatureThresholdSpec:
-    kind: "RelativeTemperatureThresholdInPercentage"
-    relativeTemperatureThresholdInPercentage:
-      temperatureThresholdPercentage: 90
-      sampleWindow: 300
+status:
+  currentPowerConsumption: 0
+  forecastPowerConsumption: 0
