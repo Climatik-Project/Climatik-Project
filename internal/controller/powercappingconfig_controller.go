@@ -179,10 +179,11 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 			Name:      powerCapLabel,
 			Namespace: pod.Namespace,
 		}, &powercappingv1alpha1.PowerCappingConfig{})
-		if obj != nil {
-			log.Error(obj, "Failed to get PowerCappingConfig")
+		if obj == nil {
+			log.Error(obj, fmt.Sprintf("Failed to get PowerCappingConfig: %s", powerCapLabel))
 			return
 		}
+		fmt.Printf("label %s obj: %v\n", powerCapLabel, obj)
 		powerCappingConfig, ok := obj.(*powercappingv1alpha1.PowerCappingConfig)
 		if !ok {
 			log.Error(fmt.Errorf("failed to cast PowerCappingConfig"), "failed to cast PowerCappingConfig")

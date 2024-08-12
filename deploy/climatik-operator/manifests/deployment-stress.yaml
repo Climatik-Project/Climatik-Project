@@ -1,4 +1,3 @@
-# deployment-stress.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -13,14 +12,15 @@ spec:
     metadata:
       labels:
         app: stress
+        powercapping.climatik.io: "high-efficiency-for-stress-powercappingconfig"
     spec:
       containers:
       - name: stress
         image: progrium/stress
         resources:
           limits:
-            cpu: "4"  # increased CPU limit to 4
-        command: ["stress", "--cpu", "4"]
+            cpu: "1"  # increased CPU limit to 1
+        command: ["stress", "--cpu", "1"]
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"

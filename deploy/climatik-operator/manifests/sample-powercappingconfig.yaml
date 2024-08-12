@@ -1,0 +1,18 @@
+apiVersion: climatik-project.io/v1alpha1
+kind: PowerCappingConfig
+metadata:
+  name: high-efficiency-for-stress-powercappingconfig
+  namespace: operator-powercapping-system
+spec:
+  workloadType: "training"
+  efficiencyLevel: "High"
+  powerCappingSpec:
+    kind: "RelativePowerCapOfPeakPowerConsumptionInPercentage"
+    relativePowerCapInPercentage:
+      powerCapPercentage: 80
+      sampleWindow: 30
+  temperatureThresholdSpec:
+    kind: "RelativeTemperatureThresholdInPercentage"
+    relativeTemperatureThresholdInPercentage:
+      temperatureThresholdPercentage: 90
+      sampleWindow: 300
