@@ -225,7 +225,7 @@ func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string
 		_, label, err := r.getKeplerMetrics(ctx, pod.Name, v)
 		if err != nil {
 			log.Error(err, "Failed to get Kepler metrics")
-			return devices
+			return nil
 		}
 		devices[v] = label
 	}
@@ -264,6 +264,7 @@ func (r *PowerCappingConfigReconciler) watchPodPowerUsage(ctx context.Context, p
 				peakPower = currentPower
 			}
 			ticker.Stop()
+			return peakPower, nil
 		}
 	}
 }

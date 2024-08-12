@@ -48,8 +48,9 @@ func (p *PrometheusAlertManager) FormatPrometheusAlert(podName string, powerCapV
 	for device, value := range devices {
 		deviceStr += fmt.Sprintf("%s:%s,", device, value)
 	}
-	deviceStr = deviceStr[:len(deviceStr)-1] // Remove trailing comma
-
+	if len(deviceStr) > 0 {
+		deviceStr = deviceStr[:len(deviceStr)-1] // Remove trailing comma
+	}
 	return PrometheusAlert{
 		Labels: map[string]string{
 			"alertname": "PowerCappingAlert",
