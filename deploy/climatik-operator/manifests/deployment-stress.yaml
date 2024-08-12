@@ -20,7 +20,7 @@ spec:
         resources:
           limits:
             cpu: "1"  # increased CPU limit to 1
-        command: ["stress", "--cpu", "1"]
+        command: ["sleep", "inf"]
       tolerations:
       - key: "node-role.kubernetes.io/control-plane"
         operator: "Exists"

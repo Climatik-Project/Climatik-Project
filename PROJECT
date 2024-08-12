@@ -2,7 +2,7 @@
 # This file is used to track the info used to scaffold your project
 # and allow the plugins properly work.
 # More info: https://book.kubebuilder.io/reference/project-config.html
-domain: climatik-project.ai
+domain: climatik-project.io
 layout:
 - go.kubebuilder.io/v3
 plugins:
@@ -15,7 +15,7 @@ resources:
     crdVersion: v1
     namespaced: true
   controller: true
-  domain: climatik-project.ai
+  domain: climatik-project.io
   group: powercapping
   kind: PowerCappingConfig
   path: github.com/Climatik-Project/Climatik-Project/api/v1alpha1

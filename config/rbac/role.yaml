@@ -19,7 +19,7 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - powercapping.climatik-project.ai
+  - climatik-project.io
   resources:
   - powercappingconfigs
   verbs:
@@ -31,13 +31,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - powercapping.climatik-project.ai
+  - climatik-project.io
   resources:
   - powercappingconfigs/finalizers
   verbs:
   - update
 - apiGroups:
-  - powercapping.climatik-project.ai
+  - climatik-project.io
   resources:
   - powercappingconfigs/status
   verbs:

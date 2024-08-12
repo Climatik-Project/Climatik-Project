@@ -94,7 +94,7 @@ kind: ClusterRole
 metadata:
   name: power-capping-operator
 rules:
-- apiGroups: ["powercapping.climatik-project.ai"]
+- apiGroups: ["powercapping.climatik-project.io"]
   resources: ["powercappingconfigs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["keda.sh"]

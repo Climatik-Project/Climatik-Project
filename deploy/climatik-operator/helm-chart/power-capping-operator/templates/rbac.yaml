@@ -3,7 +3,7 @@ kind: ClusterRole
 metadata:
   name: {{ .Release.Name }}-operator
 rules:
-- apiGroups: ["powercapping.climatik-project.ai"]
+- apiGroups: ["powercapping.climatik-project.io"]
   resources: ["powercappingconfigs"]
   verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
 - apiGroups: ["keda.sh"]

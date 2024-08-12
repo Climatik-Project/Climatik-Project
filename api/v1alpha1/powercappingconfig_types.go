@@ -17,6 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
+	"fmt"
+
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -97,7 +99,7 @@ type PowerCappingConfig struct {
 }
 
 func (p *PowerCappingConfig) Error() string {
-	return "Error"
+	return fmt.Sprintf("Error in PowerCappingConfig: %v %v", p.Spec, p.Status)
 }
 
 //+kubebuilder:object:root=true

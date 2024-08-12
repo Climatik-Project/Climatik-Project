@@ -63,9 +63,9 @@ type PowerCappingConfigReconciler struct {
 	AlertService     *service.AlertService
 }
 
-//+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=powercapping.climatik-project.ai,resources=powercappingconfigs/finalizers,verbs=update
+//+kubebuilder:rbac:groups=climatik-project.io,resources=powercappingconfigs,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=climatik-project.io,resources=powercappingconfigs/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=climatik-project.io,resources=powercappingconfigs/finalizers,verbs=update
 //+kubebuilder:rbac:groups="",resources=pods,verbs=get;list;watch
 //+kubebuilder:rbac:groups="",resources=pods/status,verbs=get
 
@@ -73,6 +73,7 @@ type PowerCappingConfigReconciler struct {
 // move the current state of the cluster closer to the desired state.
 func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	// Fetch the PowerCappingConfig instance
+	// List all the power capping configs instances
 	powerCappingConfig := &powercappingv1alpha1.PowerCappingConfig{}
 	err := r.Get(ctx, req.NamespacedName, powerCappingConfig)
 	if err != nil {
@@ -83,7 +84,7 @@ func (r *PowerCappingConfigReconciler) Reconcile(ctx context.Context, req ctrl.R
 		log.Error(err, "Failed to get PowerCappingConfig")
 		return ctrl.Result{}, err
 	}
-
+	log.Info("Reconcile", "powerCappingConfig:", fmt.Sprintf("powerCappingConfig %v", powerCappingConfig))
 	return ctrl.Result{}, nil
 }
 
@@ -170,51 +171,47 @@ func (r *PowerCappingConfigReconciler) handlePodAdd(obj interface{}) {
 	if !ok {
 		return
 	}
-	duration := time.Duration(60) * time.Second
 	powerCapLabel := pod.Labels[labelKey]
 	if powerCapLabel != "" {
 		// retrieve power cap crd using the label
 		// calculate power cap based on the peak power usage
-		obj := r.Get(context.Background(), client.ObjectKey{
+		powerCappingConfig := &powercappingv1alpha1.PowerCappingConfig{}
+		err := r.Get(context.Background(), client.ObjectKey{
 			Name:      powerCapLabel,
 			Namespace: pod.Namespace,
-		}, &powercappingv1alpha1.PowerCappingConfig{})
-		if obj == nil {
-			log.Error(obj, fmt.Sprintf("Failed to get PowerCappingConfig: %s", powerCapLabel))
-			return
-		}
-		fmt.Printf("label %s obj: %v\n", powerCapLabel, obj)
-		powerCappingConfig, ok := obj.(*powercappingv1alpha1.PowerCappingConfig)
-		if !ok {
-			log.Error(fmt.Errorf("failed to cast PowerCappingConfig"), "failed to cast PowerCappingConfig")
+		}, powerCappingConfig)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				log.Error(err, fmt.Sprintf("PowerCappingConfig %s not found in ns %s", powerCapLabel, pod.Namespace))
+				return
+			}
+			log.Error(err, fmt.Sprintf("Failed to get PowerCappingConfig: %s in ns %s", powerCapLabel, pod.Namespace))
 			return
 		}
 
-		log.Info("PowerCappingConfig", "powerCapLabel", powerCapLabel)
 		// fetch the observation window from the CRD
 		// watch the pod power usage for the observation window
 		switch powerCappingConfig.Spec.PowerCappingSpec.Kind {
 		case v1alpha1.RelativePowerCapOfPeakPowerConsumptionInPercentage:
-			log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage")
-			duration = time.Duration(powerCappingConfig.Spec.PowerCappingSpec.RelativePowerCapInPercentageSpec.SampleWindow) * time.Second
+			log.Info("RelativePowerCapOfPeakPowerConsumptionInPercentage", "sampleWindow", powerCappingConfig.Spec.PowerCappingSpec.RelativePowerCapInPercentageSpec.SampleWindow)
+			duration := time.Duration(powerCappingConfig.Spec.PowerCappingSpec.RelativePowerCapInPercentageSpec.SampleWindow) * time.Second
+			go func() {
+				ctx, cancel := context.WithCancel(context.Background())
+				defer cancel()
+				log.Info("Watching pod power usage", "pod", pod.Name, "duration", duration)
+				peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
+				if err != nil {
+					log.Error(err, "Failed to watch pod power usage")
+					return
+				}
+
+				powerCapPercentage := getPowerCapPercentage(powerCapLabel)
+				powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
+				deviceLabels := r.getPodDevices(pod)
+				r.createAlert(pod, int(powerCap), deviceLabels)
+			}()
 		}
 	}
-
-	go func() {
-		ctx, cancel := context.WithCancel(context.Background())
-		defer cancel()
-
-		peakPower, err := r.watchPodPowerUsage(ctx, pod.Name, duration)
-		if err != nil {
-			log.Error(err, "Failed to watch pod power usage")
-			return
-		}
-
-		powerCapPercentage := getPowerCapPercentage(powerCapLabel)
-		powerCap := r.calculatePowerCap(peakPower, powerCapPercentage)
-		deviceLabels := r.getPodDevices(pod)
-		r.createAlert(pod, int(powerCap), deviceLabels)
-	}()
 }
 
 func (r *PowerCappingConfigReconciler) handlePodDelete(obj interface{}) {
@@ -248,7 +245,7 @@ func getEnv(key, fallback string) string {
 }
 
 func (r *PowerCappingConfigReconciler) watchPodPowerUsage(ctx context.Context, podName string, window time.Duration) (float64, error) {
-	ticker := time.NewTicker(time.Second * window)
+	ticker := time.NewTicker(window)
 	defer ticker.Stop()
 
 	peakPower := float64(0)
@@ -258,19 +255,22 @@ func (r *PowerCappingConfigReconciler) watchPodPowerUsage(ctx context.Context, p
 		case <-ctx.Done():
 			return peakPower, nil
 		case <-ticker.C:
-			currentPower, err := r.queryPodPeakPower(ctx, podName)
+			currentPower, err := r.queryPodPeakPower(ctx, podName, window.String())
 			if err != nil {
 				return 0, err
 			}
+			log.Info("Current power usage", "power", currentPower)
 			if currentPower > peakPower {
 				peakPower = currentPower
 			}
+			ticker.Stop()
 		}
 	}
 }
 
-func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, podName string) (float64, error) {
-	query := fmt.Sprintf(`max_over_time(rate(kepler_container_joules_total{pod='%s'}[1m]))`, podName)
+func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, podName, window string) (float64, error) {
+	// sample query: max_over_time(sum(rate(kepler_container_joules_total{pod_name=~"stress-7d796cb489-fbw68"}[1m]))[1m:])
+	query := fmt.Sprintf(`max_over_time(sum(rate(kepler_container_joules_total{pod_name=~"%s"}[1m]))[%s:])`, podName, window)
 	result, warnings, err := r.PrometheusClient.Query(ctx, query, time.Now())
 	if err != nil {
 		return 0, err
@@ -278,11 +278,15 @@ func (r *PowerCappingConfigReconciler) queryPodPeakPower(ctx context.Context, po
 	if len(warnings) > 0 {
 		log.Info("Prometheus query warnings", "warnings", warnings)
 	}
-	if result.Type() == model.ValVector {
-		vector := result.(model.Vector)
-		if len(vector) > 0 {
-			return float64(vector[0].Value), nil
-		}
+	log.Info("Prometheus query result", "result", result)
+	vectorResult, ok := result.(model.Vector)
+	if !ok {
+		log.Info("Prometheus query result error", "result", result)
+	}
+
+	for _, sample := range vectorResult {
+		log.Info("Prometheus query sample", "sample", sample)
+		return float64(sample.Value), nil
 	}
 	return 0, fmt.Errorf("no data returned from Prometheus query")
 }
