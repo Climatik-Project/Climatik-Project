@@ -43,7 +43,7 @@ import (
 )
 
 const (
-	labelKey              = "powercapping.climatik.io"
+	labelKey              = "climatik-project.io"
 	defaultPowerCapHigh   = 90
 	defaultPowerCapMedium = 80
 	defaultPowerCapLow    = 50

@@ -4,9 +4,9 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     controller-gen.kubebuilder.io/version: v0.13.0
-  name: powercappingconfigs.powercapping.climatik-project.io
+  name: powercappingconfigs.climatik-project.io
 spec:
-  group: powercapping.climatik-project.io
+  group: climatik-project.io
   names:
     kind: PowerCappingConfig
     listKind: PowerCappingConfigList

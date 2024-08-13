@@ -12,7 +12,7 @@ metadata:
   name: powercappingconfig-editor-role
 rules:
 - apiGroups:
-  - powercapping.climatik-project.io
+  - climatik-project.io
   resources:
   - powercappingconfigs
   verbs:
@@ -24,7 +24,7 @@ rules:
   - update
   - watch
 - apiGroups:
-  - powercapping.climatik-project.io
+  - climatik-project.io
   resources:
   - powercappingconfigs/status
   verbs:

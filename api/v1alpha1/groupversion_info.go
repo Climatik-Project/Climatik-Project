@@ -14,9 +14,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package v1alpha1 contains API Schema definitions for the powercapping v1alpha1 API group
+// Package v1alpha1 contains API Schema definitions for the v1alpha1 API group
 // +kubebuilder:object:generate=true
-// +groupName=powercapping.climatik-project.io
+// +groupName=climatik-project.io
 package v1alpha1
 
 import (

@@ -112,9 +112,11 @@ clean-up: ## Clean up deployments
 	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
+	kubectl delete deployment stress -n operator-powercapping-system --ignore-not-found
 	if kubectl get crd scaledobjects.keda.sh > /dev/null 2>&1; then \
 		kubectl delete scaledobject mistral-7b-scaleobject -n operator-powercapping-system --ignore-not-found; \
 		kubectl delete scaledobject llama2-7b-scaleobject -n operator-powercapping-system --ignore-not-found; \
+		kubectl delete scaledobject stress-scaleobject -n operator-powercapping-system --ignore-not-found; \
 	else \
 		echo "ScaledObject resource type not found, ignoring."; \
 	fi
@@ -141,7 +143,7 @@ deploy: ## Deploy to Kubernetes
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
-	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
 	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
@@ -157,7 +159,7 @@ deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f deploy/climatik-operator/manifests/deployment-llama2-7b.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/deployment-stress.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/scaleobject.yaml
-	kubectl apply -f deploy/climatik-operator/manifests/sample_powercapping.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
 	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -

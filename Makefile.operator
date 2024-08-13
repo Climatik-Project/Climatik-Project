@@ -28,8 +28,8 @@ BUNDLE_METADATA_OPTS ?= $(BUNDLE_CHANNELS) $(BUNDLE_DEFAULT_CHANNEL)
 # This variable is used to construct full image tags for bundle and catalog images.
 #
 # For example, running 'make bundle-build bundle-push catalog-build catalog-push' will build and push both
-# climatik-project.ai/operator-powercapping-bundle:$VERSION and climatik-project.ai/operator-powercapping-catalog:$VERSION.
-IMAGE_TAG_BASE ?= climatik-project.ai/operator-powercapping
+# climatik-project.io/operator-powercapping-bundle:$VERSION and climatik-project.io/operator-powercapping-catalog:$VERSION.
+IMAGE_TAG_BASE ?= climatik-project.io/operator-powercapping
 
 # BUNDLE_IMG defines the image:tag used for the bundle.
 # You can use it as an arg. (E.g make bundle-build BUNDLE_IMG=<some-registry>/<project-name-bundle>:<tag>)

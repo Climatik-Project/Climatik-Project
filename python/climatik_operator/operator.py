@@ -51,8 +51,7 @@ def start_metrics_server(**kwargs):
     metrics.start_server()
 
 
-@kopf.on.create('powercapping.climatik-project.ai', 'v1alpha1',
-                'powercappingconfigs')
+@kopf.on.create('climatik-project.io', 'v1alpha1', 'powercappingconfigs')
 def create_power_capping_config(spec, **kwargs):
     logging.info("Creating power capping config")
     try:
@@ -100,7 +99,7 @@ def create_power_capping_config(spec, **kwargs):
             body=scale_object)
 
 
-@kopf.timer('powercapping.climatik-project.ai',
+@kopf.timer('climatik-project.io',
             'v1alpha1',
             'powercappingconfigs',
             interval=10.0)
