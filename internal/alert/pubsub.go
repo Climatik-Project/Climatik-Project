@@ -3,6 +3,8 @@ package alert
 
 import (
 	"sync"
+
+	"github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 )
 
 type PubSub struct {
@@ -22,10 +24,10 @@ func (ps *PubSub) Subscribe(topic string, subscriber AlertManager) {
 	ps.subscribers[topic] = append(ps.subscribers[topic], subscriber)
 }
 
-func (ps *PubSub) Publish(topic string, podName string, powerCapValue int, devices map[string]string) {
+func (ps *PubSub) Publish(topic string, podName string, powerCapValue int, devices map[string]string, config *v1alpha1.PowerCappingConfig) {
 	ps.mu.RLock()
 	defer ps.mu.RUnlock()
 	for _, subscriber := range ps.subscribers[topic] {
-		go subscriber.CreateAlert(podName, powerCapValue, devices)
+		go subscriber.CreateAlert(podName, powerCapValue, devices, config)
 	}
 }

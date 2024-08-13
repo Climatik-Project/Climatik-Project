@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"time"
 
+	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	"github.com/prometheus/client_golang/api"
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
@@ -35,7 +36,7 @@ func NewPrometheusAlertManager(prometheusAddress string) (*PrometheusAlertManage
 	}, nil
 }
 
-func (p *PrometheusAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
+func (p *PrometheusAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string, config *powercappingv1alpha1.PowerCappingConfig) error {
 	alert := p.FormatPrometheusAlert(podName, powerCapValue, devices)
 	if err := p.SendAlertToPrometheus(alert); err != nil {
 		return fmt.Errorf("failed to send alert to Prometheus: %w", err)

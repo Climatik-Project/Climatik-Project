@@ -31,7 +31,9 @@ func TestSlackAlertActualNotification(t *testing.T) {
 		"Memory": "70% usage",
 	}
 
-	err = manager.CreateAlert("test-pod", 100, devices)
+	mockConfig := NewMockPowerCappingConfig()
+
+	err = manager.CreateAlert("test-pod", 100, devices, mockConfig)
 	assert.NoError(t, err)
 }
 

@@ -40,6 +40,7 @@ import (
 	"github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	service "github.com/Climatik-Project/Climatik-Project/internal/alert"
+	mockConfig "github.com/Climatik-Project/Climatik-Project/internal/alert/tests"
 )
 
 const (
@@ -233,7 +234,9 @@ func (r *PowerCappingConfigReconciler) getPodDevices(pod *corev1.Pod) map[string
 }
 
 func (r *PowerCappingConfigReconciler) createAlert(pod *corev1.Pod, powerCap int, deviceLabels map[string]string) error {
-	return r.AlertService.SendAlert(pod.Name, powerCap, deviceLabels)
+	mockConfig := mockConfig.NewMockPowerCappingConfig()
+
+	return r.AlertService.SendAlert(pod.Name, powerCap, deviceLabels, mockConfig)
 }
 
 func getEnv(key, fallback string) string {

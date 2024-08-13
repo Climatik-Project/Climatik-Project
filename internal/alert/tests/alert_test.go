@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 	alert "github.com/Climatik-Project/Climatik-Project/internal/alert"
 	adapters "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
 )
@@ -81,7 +82,10 @@ func TestSlackAlertManagerMocked(t *testing.T) {
 		"Memory": "70% usage",
 	}
 
-	err = manager.CreateAlert("test-pod", 100, devices)
+	mockConfig := NewMockPowerCappingConfig()
+
+	err = manager.CreateAlert("test-pod", 100, devices, mockConfig)
+
 	assert.NoError(t, err)
 }
 
@@ -131,7 +135,10 @@ func TestCreateAlert(t *testing.T) {
 		AlertmanagerURL: server.URL + "/api/v1/alerts",
 	}
 
-	err := manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	// Create a mock PowerCappingConfig
+	mockConfig := NewMockPowerCappingConfig()
+
+	err := manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"}, mockConfig)
 	assert.NoError(t, err)
 }
 
@@ -145,7 +152,9 @@ func TestCreateAlertError(t *testing.T) {
 		AlertmanagerURL: server.URL + "/api/v1/alerts",
 	}
 
-	err := manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	mockConfig := NewMockPowerCappingConfig()
+
+	err := manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"}, mockConfig)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "failed to send alert to Prometheus Alertmanager")
 }
@@ -176,7 +185,9 @@ func TestGitOpsAlertManager(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotNil(t, manager)
 
-	err = manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	mockConfig := NewMockPowerCappingConfig()
+
+	err = manager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"}, mockConfig)
 	assert.NoError(t, err)
 
 	alerts := manager.GetAlerts()
@@ -203,11 +214,14 @@ func TestAlertService(t *testing.T) {
 
 	service := &alert.AlertService{Pubsub: pubsub}
 
-	mockSlackManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}).Return(nil)
-	mockPrometheusManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}).Return(nil)
-	mockGitOpsManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}).Return(nil)
+	// Create a mock PowerCappingConfig
+	mockConfig := NewMockPowerCappingConfig()
 
-	err := service.SendAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	mockSlackManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}, mockConfig).Return(nil)
+	mockPrometheusManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}, mockConfig).Return(nil)
+	mockGitOpsManager.On("CreateAlert", "test-pod", 100, map[string]string{"cpu": "high"}, mockConfig).Return(nil)
+
+	err := service.SendAlert("test-pod", 100, map[string]string{"cpu": "high"}, mockConfig)
 	assert.NoError(t, err)
 
 	// Wait for goroutines to finish
@@ -223,7 +237,7 @@ type MockAlertManager struct {
 	mock.Mock
 }
 
-func (m *MockAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
-	args := m.Called(podName, powerCapValue, devices)
+func (m *MockAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string, config *v1alpha1.PowerCappingConfig) error {
+	args := m.Called(podName, powerCapValue, devices, config)
 	return args.Error(0)
 }
