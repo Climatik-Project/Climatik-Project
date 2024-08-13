@@ -5,6 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	powercappingv1alpha1 "github.com/Climatik-Project/Climatik-Project/api/v1alpha1"
 )
 
 type GitOpsAlertManager struct {
@@ -20,7 +22,7 @@ func NewGitOpsAlertManager(repoURL, repoDir string) (*GitOpsAlertManager, error)
 	}, nil
 }
 
-func (g *GitOpsAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string) error {
+func (g *GitOpsAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string, config *powercappingv1alpha1.PowerCappingConfig) error {
 	alertMessage := g.formatAlertMessage(podName, powerCapValue, devices)
 	alertFile := filepath.Join(g.repoDir, "alerts", podName+"-alert.yaml")
 	g.alerts[alertFile] = alertMessage

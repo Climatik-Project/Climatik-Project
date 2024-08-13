@@ -4,19 +4,20 @@ import (
 	"fmt"
 
 	"github.com/Climatik-Project/Climatik-Project/internal/webhook/handlers"
-	"github.com/Climatik-Project/Climatik-Project/internal/webhook/runners"
 )
 
 type AlertHandlerFactory struct{}
 
-func (f *AlertHandlerFactory) GetHandler(source string, runner runners.Runner) (handlers.AlertHandler, error) {
+func (f *AlertHandlerFactory) GetHandler(source string) (interface{}, error) {
 	switch source {
 	case "slack":
-		return &handlers.SlackAlertHandler{Runner: runner}, nil
+		return &handlers.SlackHandler{}, nil
 	case "prometheus":
-		return &handlers.PrometheusAlertHandler{Runner: runner}, nil
+		// Implement PrometheusAlertHandler creation
+		return nil, fmt.Errorf("PrometheusAlertHandler not implemented")
 	case "gitops":
-		return &handlers.GitOpsAlertHandler{Runner: runner}, nil
+		// Implement GitOpsAlertHandler creation
+		return nil, fmt.Errorf("GitOpsAlertHandler not implemented")
 	default:
 		return nil, fmt.Errorf("unknown alert source: %s", source)
 	}

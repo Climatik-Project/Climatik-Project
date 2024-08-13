@@ -5,6 +5,7 @@ import (
 	"os"
 
 	alert "github.com/Climatik-Project/Climatik-Project/internal/alert/adapters"
+	mockConfig "github.com/Climatik-Project/Climatik-Project/internal/alert/tests"
 	"github.com/joho/godotenv"
 )
 
@@ -27,8 +28,10 @@ func main() {
 		log.Fatalf("Failed to create Slack alert manager: %v", err)
 	}
 
+	mockConfig := mockConfig.NewMockPowerCappingConfig()
+
 	// Send a test alert
-	err = slackManager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"})
+	err = slackManager.CreateAlert("test-pod", 100, map[string]string{"cpu": "high"}, mockConfig)
 	if err != nil {
 		log.Fatalf("Failed to send alert: %v", err)
 	}
