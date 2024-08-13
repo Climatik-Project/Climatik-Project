@@ -12,7 +12,7 @@ spec:
     metadata:
       labels:
         app: stress
-        powercapping.climatik.io: "high-efficiency-for-stress-powercappingconfig"
+        climatik.io: "high-efficiency-for-stress-powercappingconfig"
     spec:
       containers:
       - name: stress

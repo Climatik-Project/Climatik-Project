@@ -1,4 +1,4 @@
-apiVersion: powercapping.climatik-project.io/v1alpha1
+apiVersion: climatik-project.io/v1alpha1
 kind: PowerCappingConfig
 metadata:
   labels:
