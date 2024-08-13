@@ -1,5 +1,11 @@
 # Setting up a Slack App for Power Capping Config
 
+## Workflow
+
+1. When a user types the slash command `/modify-power-config`, `handleModifyPowerConfig` will be called, presenting the user with options.
+2. When the user selects an option, `handleBlockActions` will be called, which will open a modal using `openParameterInputModal`.
+3. When the user submits the modal, `handleViewSubmission` will be called, which will then call `handleParameterUpdate` to process the update.
+
 ## 1. Create a new Slack App
 
 a. Go to https://api.slack.com/apps
@@ -81,12 +87,6 @@ Implement proper error handling and logging in your webhook handlers to help wit
 - Implement proper access controls to ensure only authorized users can modify configurations
 
 **Note**: Remember to replace "https://your-domain.com" with your actual domain where your webhook is hosted.
-
-## Workflow
-
-1. When a user types the slash command `/modify-power-config`, `handleModifyPowerConfig` will be called, presenting the user with options.
-2. When the user selects an option, `handleBlockActions` will be called, which will open a modal using `openParameterInputModal`.
-3. When the user submits the modal, `handleViewSubmission` will be called, which will then call `handleParameterUpdate` to process the update.
 
 ## Important URLs
 
