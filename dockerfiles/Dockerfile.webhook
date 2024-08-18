@@ -1,0 +1,13 @@
+# Build stage
+FROM golang:1.19-alpine AS builder
+WORKDIR /app
+COPY . .
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -o slack-webhook ./cmd/webhook
+
+# Run stage
+FROM alpine:3.14
+WORKDIR /app
+COPY --from=builder /app/slack-webhook .
+EXPOSE 8088
+CMD ["./slack-webhook"]

@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: operator-powercapping-webhook-service
+  namespace: operator-powercapping-system
+spec:
+  selector:
+    control-plane: webhook-manager
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8088

@@ -21,6 +21,13 @@ type SlackHandler struct {
 	DynamicClient dynamic.Interface
 }
 
+func (sh *SlackHandler) HandleAlert(body []byte) error {
+	// Dummy implementation for Slack
+	fmt.Println("Handling Slack alert with body:", string(body))
+	// You can add more logic here if needed
+	return nil
+}
+
 func NewSlackHandler(signingSecret, slackBotToken string) (*SlackHandler, error) {
 	config, err := clientcmd.BuildConfigFromFlags("", "/path/to/your/kubeconfig")
 	if err != nil {
