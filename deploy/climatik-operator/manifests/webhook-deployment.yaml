@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: operator-powercapping-webhook-manager
+  namespace: operator-powercapping-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      control-plane: webhook-manager
+  template:
+    metadata:
+      labels:
+        control-plane: webhook-manager
+    spec:
+      serviceAccountName: operator-powercapping-webhook-manager
+      containers:
+      - name: webhook
+        image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}/webhook:latest
+        ports:
+        - containerPort: 8088
+          name: webhook
+        env:
+        - name: SLACK_SIGNING_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: env-secrets
+              key: SLACK_SIGNING_SECRET
+        - name: SLACK_BOT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: env-secrets
+              key: SLACK_BOT_TOKEN
+        resources:
+          limits:
+            cpu: 200m
+            memory: 128Mi
+          requests:
+            cpu: 100m
+            memory: 64Mi
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: operator-powercapping-webhook-manager
+  namespace: operator-powercapping-system
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: operator-powercapping-webhook-manager
+  namespace: operator-powercapping-system
+rules:
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: operator-powercapping-webhook-manager
+  namespace: operator-powercapping-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: operator-powercapping-webhook-manager
+subjects:
+- kind: ServiceAccount
+  name: operator-powercapping-webhook-manager
+  namespace: operator-powercapping-system

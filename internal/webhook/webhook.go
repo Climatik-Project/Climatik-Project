@@ -7,10 +7,11 @@ import (
 	"net/http"
 
 	"github.com/Climatik-Project/Climatik-Project/internal/webhook/factory"
-	"github.com/Climatik-Project/Climatik-Project/internal/webhook/runners"
 )
 
-func alertHandler(w http.ResponseWriter, r *http.Request) {
+// Make sure this interface is defined in the factory package and imported here
+
+func AlertHandler(w http.ResponseWriter, r *http.Request) {
 	source := r.URL.Query().Get("source")
 	runnerType := r.URL.Query().Get("runner")
 	path := r.URL.Query().Get("path")
@@ -25,15 +26,16 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	runnerFactory := runners.RunnerFactory{}
-	runner, err := runnerFactory.GetRunner(runnerType, path)
+	// runnerFactory := &runners.RunnerFactory{}
+	// runner, err := runnerFactory.GetRunner(runnerType, path)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// runner.Run()
 
-	handlerFactory := factory.AlertHandlerFactory{}
-	handler, err := handlerFactory.GetHandler(source, runner)
+	handlerFactory := &factory.AlertHandlerFactory{}
+	handler, err := handlerFactory.GetHandler(source)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -49,7 +51,7 @@ func alertHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreateWebhook(port int) {
-	http.HandleFunc("/alert", alertHandler)
+	http.HandleFunc("/alert", AlertHandler)
 	portStr := fmt.Sprintf(":%d", port)
 	if err := http.ListenAndServe(portStr, nil); err != nil {
 		log.Fatalf("Failed to start server: %v", err)

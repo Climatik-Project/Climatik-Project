@@ -80,6 +80,9 @@ To install the power capping operator, follow these steps:
    GITHUB_USERNAME=<your-username>
    GITHUB_REPO=<your-repo-name>
    GITHUB_PAT=<your-github-pat>
+   PROMETHEUS_HOST=http://localhost:9090
+   SLACK_SIGNING_SECRET=<secret> # see README-slack-webhook-server.md
+   SLACK_BOT_TOKEN=<secret> # see README-slack-webhook-server.md
    ```
 
 3. Python Libraries:
@@ -108,11 +111,28 @@ To install the power capping operator, follow these steps:
    kubectl describe scaledobject mistral-7b-scaleobject -n operator-powercapping-system
    kubectl describe scaledobject llama2-7b-scaleobject -n operator-powercapping-system
    kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
+   kubectl describe pod -n operator-powercapping-system operator-powercapping-webhook-manager
    kubectl describe pod -n operator-powercapping-system llama2-7b
    kubectl describe pod -n operator-powercapping-system mistral-7b
    ```
 
-6. Check logs for containers:
+6. Package Visibility Issue:
+   when running
+
+   ```bash
+   kubectl describe pod -n operator-powercapping-system operator-powercapping-controller-manager
+   kubectl describe pod -n operator-powercapping-system operator-powercapping-webhook-manager
+   ```
+
+   if see
+
+   ```bash
+   failed to authorize: failed to fetch anonymous token: unexpected status from GET request to URL, 401 Unauthorized
+   ```
+
+   Please go to your own github and change visibility of your package to public
+
+7. Check logs for containers:
 
    For manager:
 
@@ -138,19 +158,19 @@ To install the power capping operator, follow these steps:
    kubectl logs -n keda -l app=keda-operator
    ```
 
-7. Test Operator Locally:
+8. Test Operator Locally:
 
    ```bash
    cd python/climatik_operator && kopf run operator.py
    ```
 
-8. Check CRD:
+9. Check CRD:
 
    ```bash
    kubectl get crd
    ```
 
-9. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
+10. Configure the power capping CRD with the desired power cap limit, rack-level constraints, and other parameters. Refer
    to the [CRD documentation](docs/crd.md) for more details.
 
 ## 5. Usage

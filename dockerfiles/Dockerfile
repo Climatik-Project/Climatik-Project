@@ -1,4 +1,4 @@
-# Build the Go manager binary
+# Build the Go manager binary and webhook server
 FROM golang:1.20 AS builder
 ARG TARGETOS
 ARG TARGETARCH
@@ -33,14 +33,14 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy the Python application code
 COPY python/climatik_operator /app/
 
-# Final stage: Use alpine base image to package the Go binary and Python environment
+# Final stage: Use alpine base image to package the Go binaries and Python environment
 FROM alpine:latest
 WORKDIR /
 
 # Install dependencies
 RUN apk add --no-cache bash
 
-# Copy the built Go binary
+# Copy the built Go binaries
 COPY --from=builder /workspace/manager .
 
 # Copy the installed Python environment
@@ -53,5 +53,5 @@ COPY --from=python-builder /app /app
 # Set the user
 USER 65532:65532
 
-# Command to run the Go manager binary and the Python operator
-CMD ["/bin/sh", "-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect  && kopf run /app/operator.py"]
+# Command to run the Go manager binary, the Python operator, and the Slack webhook server
+CMD ["/bin/sh", "-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect & kopf run /app/operator.py"]

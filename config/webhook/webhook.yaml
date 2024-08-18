@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webhook-manager
+  namespace: system
+  labels:
+    control-plane: webhook-manager
+    app.kubernetes.io/name: deployment
+    app.kubernetes.io/instance: webhook-manager
+    app.kubernetes.io/component: webhook
+    app.kubernetes.io/created-by: operator-powercapping
+    app.kubernetes.io/part-of: operator-powercapping
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  selector:
+    matchLabels:
+      control-plane: webhook-manager
+  replicas: 1
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/default-container: webhook
+      labels:
+        control-plane: webhook-manager
+    spec:
+      securityContext:
+        runAsNonRoot: true
+      containers:
+      - name: webhook
+        image: $(IMAGE_NAME)
+        imagePullPolicy: IfNotPresent
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - "ALL"
+        command:
+        - /webhook
+        ports:
+        - containerPort: 8088
+          name: webhook
+          protocol: TCP
+        envFrom:
+        - secretRef:
+            name: env-secrets
+        env:
+        - name: IMAGE_NAME
+          value: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)/webhook:latest
+        resources:
+          limits:
+            cpu: 500m
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 64Mi
+      serviceAccountName: webhook-manager
+      terminationGracePeriodSeconds: 10

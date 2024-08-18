@@ -32,6 +32,7 @@ export $(shell sed 's/=.*//' .env)
 IMG ?= quay.io/climatik-project/climatik-operator
 GITHUB_REPO ?= climatik-project
 GHCR_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)
+GHCR_WEBHOOK_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)/webhook
 
 CLUSTER_PROVIDER ?= kind
 LOCAL_DEV_CLUSTER_VERSION ?= main
@@ -61,7 +62,7 @@ help: ## Display this help.
 .DEFAULT_GOAL := default
 
 .PHONY: default
-default: check-env tests build-image-ghcr push-image-ghcr clean-up create-env-secret deploy-ghcr ## Run default targets
+default: check-env tests build-image-ghcr push-image-ghcr build-webhook-image push-webhook-image clean-up create-env-secret deploy-ghcr ## Run default targets
 
 .PHONY: tests
 tests: ## Run tests
@@ -89,9 +90,9 @@ build-image: tests ## Build Docker image
 .PHONY: build-image-ghcr
 build-image-ghcr: tests ## Build Docker image for GitHub Container Registry
 ifeq ($(OPT), NO_CACHE_BUILD)
-	$(CTR_CMD) build --no-cache -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile -t $(GHCR_IMG):latest .
 else
-	$(CTR_CMD) build -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build -f dockerfiles/Dockerfile -t $(GHCR_IMG):latest .
 endif
 
 ##@ Push Image
@@ -105,11 +106,21 @@ push-image-ghcr: build-image-ghcr ## Push Docker image to GitHub Container Regis
 	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
 	$(CTR_CMD) push $(GHCR_IMG):latest
 
+.PHONY: build-webhook-image
+build-webhook-image: ## Build Docker image for the webhook
+	$(CTR_CMD) build -t $(GHCR_WEBHOOK_IMG):latest -f dockerfiles/Dockerfile.webhook .
+
+.PHONY: push-webhook-image
+push-webhook-image: build-webhook-image ## Push Docker image for the webhook to GitHub Container Registry
+	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
+	$(CTR_CMD) push $(GHCR_WEBHOOK_IMG):latest
+
 ##@ Clean Up Resources
 
 .PHONY: clean-up
 clean-up: ## Clean up deployments
 	kubectl delete deployment operator-powercapping-controller-manager -n operator-powercapping-system --ignore-not-found
+	kubectl delete deployment operator-powercapping-webhook-manager -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment llama2-7b -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment mistral-7b -n operator-powercapping-system --ignore-not-found
 	kubectl delete deployment stress -n operator-powercapping-system --ignore-not-found
@@ -126,9 +137,15 @@ clean-up: ## Clean up deployments
 .PHONY: create-env-secret
 create-env-secret: ## Create env secret from .env file
 	kubectl create namespace operator-powercapping-system --dry-run=client -o yaml | kubectl apply -f -
+	kubectl create namespace system --dry-run=client -o yaml | kubectl apply -f -
 	kubectl delete secret env-secrets -n operator-powercapping-system --ignore-not-found
+	kubectl delete secret env-secrets -n system --ignore-not-found
+
+	kubectl create secret generic env-secrets --from-env-file=.env -n system
 	kubectl create secret generic env-secrets --from-env-file=.env -n operator-powercapping-system
 	@echo "Environment secret has been recreated in the operator-powercapping-system namespace."
+	@echo "Environment secret has been recreated in the system namespace."
+
 
 ##@ Deployment
 
@@ -144,7 +161,10 @@ deploy: ## Deploy to Kubernetes
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
-	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	file=$$(cat "deploy/climatik-operator/manifests/manager-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	echo "$$file"; \
+	echo "$$file" | kubectl apply -f -
+	file=$$(cat "deploy/climatik-operator/manifests/webhook-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
 
@@ -152,6 +172,13 @@ deploy: ## Deploy to Kubernetes
 deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
+
+	@echo "Deploying webhook with image: $(GHCR_WEBHOOK_IMG)"
+	@echo "Applying the following configuration:"
+	@sed 's|WEBHOOK_IMAGE_PLACEHOLDER|$(GHCR_WEBHOOK_IMG)|g' config/webhook/webhook.yaml
+	@sed 's|WEBHOOK_IMAGE_PLACEHOLDER|$(GHCR_WEBHOOK_IMG)|g' config/webhook/webhook.yaml | kubectl apply -f -
+	@echo "Webhook deployment completed."
+
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f hack/keda/keda-2.10.0.yaml
 	kubectl wait --for=condition=Available --timeout=600s apiservice v1beta1.external.metrics.k8s.io
@@ -160,7 +187,10 @@ deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f deploy/climatik-operator/manifests/deployment-stress.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/scaleobject.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
-	file=$$(cat "deploy/climatik-operator/manifests/deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	file=$$(cat "deploy/climatik-operator/manifests/manager-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
+	echo "$$file"; \
+	echo "$$file" | kubectl apply -f -
+	file=$$(cat "deploy/climatik-operator/manifests/webhook-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
 	echo "$$file"; \
 	echo "$$file" | kubectl apply -f -
 

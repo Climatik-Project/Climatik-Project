@@ -6,9 +6,13 @@ import (
 	"github.com/Climatik-Project/Climatik-Project/internal/webhook/handlers"
 )
 
+type AlertHandler interface {
+	HandleAlert(body []byte) error
+}
+
 type AlertHandlerFactory struct{}
 
-func (f *AlertHandlerFactory) GetHandler(source string) (interface{}, error) {
+func (f *AlertHandlerFactory) GetHandler(source string) (AlertHandler, error) {
 	switch source {
 	case "slack":
 		return &handlers.SlackHandler{}, nil
