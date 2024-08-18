@@ -95,6 +95,14 @@ else
 	$(CTR_CMD) build -f dockerfiles/Dockerfile -t $(GHCR_IMG):latest .
 endif
 
+.PHONY: build-webhook-image
+build-webhook-image: ## Build Docker image for the webhook
+ifeq ($(OPT), NO_CACHE_BUILD)
+	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile.webhook -t $(GHCR_WEBHOOK_IMG):latest .
+else
+	$(CTR_CMD) build -f dockerfiles/Dockerfile.webhook -t $(GHCR_WEBHOOK_IMG):latest .
+endif
+
 ##@ Push Image
 
 .PHONY: push-image
@@ -105,10 +113,6 @@ push-image: build-image ## Push Docker image
 push-image-ghcr: build-image-ghcr ## Push Docker image to GitHub Container Registry
 	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
 	$(CTR_CMD) push $(GHCR_IMG):latest
-
-.PHONY: build-webhook-image
-build-webhook-image: ## Build Docker image for the webhook
-	$(CTR_CMD) build -t $(GHCR_WEBHOOK_IMG):latest -f dockerfiles/Dockerfile.webhook .
 
 .PHONY: push-webhook-image
 push-webhook-image: build-webhook-image ## Push Docker image for the webhook to GitHub Container Registry
@@ -172,13 +176,6 @@ deploy: ## Deploy to Kubernetes
 deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
-
-	@echo "Deploying webhook with image: $(GHCR_WEBHOOK_IMG)"
-	@echo "Applying the following configuration:"
-	@sed 's|WEBHOOK_IMAGE_PLACEHOLDER|$(GHCR_WEBHOOK_IMG)|g' config/webhook/webhook.yaml
-	@sed 's|WEBHOOK_IMAGE_PLACEHOLDER|$(GHCR_WEBHOOK_IMG)|g' config/webhook/webhook.yaml | kubectl apply -f -
-	@echo "Webhook deployment completed."
-
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f hack/keda/keda-2.10.0.yaml
 	kubectl wait --for=condition=Available --timeout=600s apiservice v1beta1.external.metrics.k8s.io
