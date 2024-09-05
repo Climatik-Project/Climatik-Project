@@ -31,32 +31,60 @@ rack-level constraints.
 The power capping operator follows an architecture similar to the Kubernetes Vertical Pod Autoscaler (VPA) controller.
 It consists of three main components:
 
-1. Recommender: Monitors the current and past resource and power consumption, and provides recommended actions for the
-   actuator based on the defined policies.
-2. Actuator: Checks which of the managed pods have correct power consumption set and, if not, kills or migrates them to
-   conform to the power capping and performance-power ratio policy.
-3. Admission Plugin: Sets the correct resource requests on new pods and issues alerts for passive actuators.
-
-```mermaid
-graph LR
-A[Recommender] --> B[Actuator]
-A --> C[Admission Plugin]
-B --> D{Managed Pods}
-C --> D
-```
-
-The power capping operator integrates with existing Kubernetes tools and frameworks, such as KEDA for event-driven
-autoscaling, KServe for serving LLM inference workloads, and Kepler for power monitoring. It leverages these tools to
-optimize power consumption and workload placement based on the defined policies and constraints.
+1. Controller: Monitors the current and past resource and power consumption, and provides recommended actions for the
+   Webhook based on the defined policies.
+2. Webhook: Enforce SW or HW power capping tuning.
+3. Forecast Model: Forecast workload and power consumption.
 
 ```mermaid
 graph TD
-A[Power Capping Operator] --> B[KEDA]
-A --> C[KServe]
-A --> D[Kepler]
-B --> E{LLM Inference Service}
-C --> E
-D --> A
+    A[Prometheus] --> B[Climatik Forecast Model]
+    A --> C[Climatik Controller]
+    D[Kepler] --> A
+    E[Workload Exporters] --> A
+    B --> C
+    C --> F[Prometheus Alert Manager]
+    C --> G[Slack]
+    C --> H[GitOps]
+    F --> I[Climatik Webhook]
+    G --> I
+    H --> I
+
+    subgraph "OpenShift Node 1"
+        J[LLM Inferencing Pod]
+        K[LLM Training Pod]
+        L[CPU]
+        M[GPU]
+    end
+
+    subgraph "OpenShift Node 2"
+        N[LLM Inferencing Pod]
+        O[LLM Training Pod]
+        P[CPU]
+        Q[GPU]
+    end
+
+    subgraph "Power Capping Policy CRD"
+        R["Power Capping Threshold: 90%<br>Power Usage Observation<br>window: 4 Hours"]
+        S["Power Capping Threshold: 80%<br>Power Usage Observation<br>window: 1 Hours"]
+    end
+
+    J --> R
+    K --> S
+    N --> R
+    O --> S
+
+    I -->|Pod replica and resource tuning| J
+    I -->|Pod replica and resource tuning| K
+    I -->|Pod replica and resource tuning| N
+    I -->|Pod replica and resource tuning| O
+    I -->|P/C state tuning| L
+    I -->|P/C state tuning| M
+    I -->|P/C state tuning| P
+    I -->|P/C state tuning| Q
+
+    C -->|Power Capping Recommendation Event Posting| R
+    C -->|Power Capping Recommendation Event Posting| S
 ```
 
 Out of the box, the power capping operator includes batteries for Power Oversubscription and Performance-Power Ratio
