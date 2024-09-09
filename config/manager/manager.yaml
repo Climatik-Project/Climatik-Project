@@ -70,7 +70,7 @@ spec:
         - /manager
         args:
         - --leader-elect
-        image: $(IMAGE_NAME)
+        image: quay.io/climatik-project/climatik-controller
         imagePullPolicy: IfNotPresent
         name: manager
         securityContext:
@@ -97,13 +97,6 @@ spec:
         #   successThreshold: 1
         #   failureThreshold: 3
         # Configure the resources accordingly based on the project requirements.
-        resources:
-          limits:
-            cpu: 500m
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
         ports:
         - containerPort: 8080
           protocol: TCP
@@ -111,8 +104,5 @@ spec:
         envFrom:
         - secretRef:
             name: env-secrets
-        env:
-        - name: IMAGE_NAME
-          value: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO):latest
       serviceAccountName: controller-manager
       terminationGracePeriodSeconds: 10

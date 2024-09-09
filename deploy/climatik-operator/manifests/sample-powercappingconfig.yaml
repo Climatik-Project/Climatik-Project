@@ -11,19 +11,6 @@ spec:
     relativePowerCapInPercentage:
       powerCapPercentage: 80
       sampleWindow: 30
-  scaledObjectRefs:
-    - apiVersion: "keda.sh/v1alpha1"
-      kind: "ScaledObject"
-      metadata:
-        name: "mistral-7b-scaleobject"
-    - apiVersion: "keda.sh/v1alpha1"
-      kind: "ScaledObject"
-      metadata:
-        name: "llama2-7b-scaleobject"
-    - apiVersion: "keda.sh/v1alpha1"
-      kind: "ScaledObject"
-      metadata:
-        name: "stress-scaleobject"
 status:
   currentPowerConsumption: 0
   forecastPowerConsumption: 0

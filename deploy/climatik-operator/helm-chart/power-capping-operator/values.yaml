@@ -1,5 +1,5 @@
 image:
-  repository: quay.io/climatik-project/climatik-operator
+  repository: quay.io/climatik-project/climatik-controller
   tag: latest
   pullPolicy: Always
 
