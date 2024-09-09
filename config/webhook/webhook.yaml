@@ -27,7 +27,7 @@ spec:
         runAsNonRoot: true
       containers:
       - name: webhook
-        image: $(IMAGE_NAME)
+        image: quay.io/climatik-project/webhook:latest
         imagePullPolicy: IfNotPresent
         securityContext:
           allowPrivilegeEscalation: false
@@ -43,15 +43,5 @@ spec:
         envFrom:
         - secretRef:
             name: env-secrets
-        env:
-        - name: IMAGE_NAME
-          value: ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)/webhook:latest
-        resources:
-          limits:
-            cpu: 500m
-            memory: 128Mi
-          requests:
-            cpu: 10m
-            memory: 64Mi
       serviceAccountName: webhook-manager
       terminationGracePeriodSeconds: 10

@@ -105,9 +105,6 @@ To install the power capping operator, follow these steps:
 
    ```bash
    SLACK_WEBHOOK_URL=<your-slack-webhook-url>
-   GITHUB_USERNAME=<your-username>
-   GITHUB_REPO=<your-repo-name>
-   GITHUB_PAT=<your-github-pat>
    PROMETHEUS_HOST=http://localhost:9090
    SLACK_SIGNING_SECRET=<secret> # see README-slack-webhook-server.md
    SLACK_BOT_TOKEN=<secret> # see README-slack-webhook-server.md

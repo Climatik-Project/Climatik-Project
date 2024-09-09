@@ -16,7 +16,7 @@ spec:
       serviceAccountName: operator-powercapping-webhook-manager
       containers:
       - name: webhook
-        image: ghcr.io/${GITHUB_USERNAME}/${GITHUB_REPO}/webhook:latest
+        image: quay.io/climatik-project/webhook:latest
         ports:
         - containerPort: 8088
           name: webhook

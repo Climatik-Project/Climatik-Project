@@ -8,20 +8,6 @@ check-env: ## Check environment variables
 	fi
 	@echo "Loading .env file..."
 	@set -a; . ./.env; set +a
-	@echo "GITHUB_USERNAME from .env: $$GITHUB_USERNAME"
-	@echo "GITHUB_REPO from .env: $$GITHUB_REPO"
-	@if [ -z "$$GITHUB_PAT" ]; then \
-		echo "Error: GITHUB_PAT is not set in .env file. Please add it."; \
-		exit 1; \
-	fi
-	@if [ -z "$$GITHUB_USERNAME" ]; then \
-		echo "Error: GITHUB_USERNAME is not set in .env file. Please add it."; \
-		exit 1; \
-	fi
-	@if [ -z "$$GITHUB_REPO" ]; then \
-		echo "Error: GITHUB_REPO is not set in .env file. Please add it."; \
-		exit 1; \
-	fi
 	@echo "All required environment variables are set."
 
 # Include and export variables from .env
@@ -29,10 +15,8 @@ check-env: ## Check environment variables
 export $(shell sed 's/=.*//' .env)
 
 # Set variables
-IMG ?= quay.io/climatik-project/climatik-operator
-GITHUB_REPO ?= climatik-project
-GHCR_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)
-GHCR_WEBHOOK_IMG ?= ghcr.io/$(GITHUB_USERNAME)/$(GITHUB_REPO)/webhook
+CONTROLLER_IMG ?= quay.io/climatik-project/climatik-controller
+WEBHOOK_IMG ?= quay.io/climatik-project/webhook
 
 CLUSTER_PROVIDER ?= kind
 LOCAL_DEV_CLUSTER_VERSION ?= main
@@ -62,16 +46,16 @@ help: ## Display this help.
 .DEFAULT_GOAL := default
 
 .PHONY: default
-default: check-env tests build-image-ghcr push-image-ghcr build-webhook-image push-webhook-image clean-up create-env-secret deploy-ghcr ## Run default targets
-
+default: check-env tests build-controller-image push-controller-image build-webhook-image push-webhook-image
 .PHONY: tests
 tests: ## Run tests
-	PROMETHEUS_HOST="http://localhost:9090" python -m unittest discover python/tests
+	PROMETHEUS_HOST="http://127.0.0.1:9090" python -m unittest discover python/tests
 	go test -v ./internal/alert/tests
 
 .PHONY: build
 build: ## Build the project
-	$(GOENV) go build -o bin/manager ./cmd/...
+	$(GOENV) go build -o bin/manager ./cmd/controller/main.go
+	$(GOENV) go build -o bin/webhook ./cmd/webhook/main.go
 
 .PHONY: run
 run: ## Run the project
@@ -82,42 +66,31 @@ local-run: ## Run the project locally
 	kopf run python/climatik_operator/operator.py --verbose
 
 ##@ Build
-
-.PHONY: build-image
-build-image: tests ## Build Docker image
-	$(CTR_CMD) build -t $(IMG):latest .
-
-.PHONY: build-image-ghcr
-build-image-ghcr: tests ## Build Docker image for GitHub Container Registry
+.PHONY: build-controller-image
+build-controller-image: tests ## Build Docker image for Container Registry
 ifeq ($(OPT), NO_CACHE_BUILD)
-	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile -t $(CONTROLLER_IMG):latest .
 else
-	$(CTR_CMD) build -f dockerfiles/Dockerfile -t $(GHCR_IMG):latest .
+	$(CTR_CMD) build -f dockerfiles/Dockerfile -t $(CONTROLLER_IMG):latest .
 endif
 
 .PHONY: build-webhook-image
 build-webhook-image: ## Build Docker image for the webhook
 ifeq ($(OPT), NO_CACHE_BUILD)
-	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile.webhook -t $(GHCR_WEBHOOK_IMG):latest .
+	$(CTR_CMD) build --no-cache -f dockerfiles/Dockerfile.webhook -t $(WEBHOOK_IMG):latest .
 else
-	$(CTR_CMD) build -f dockerfiles/Dockerfile.webhook -t $(GHCR_WEBHOOK_IMG):latest .
+	$(CTR_CMD) build -f dockerfiles/Dockerfile.webhook -t $(WEBHOOK_IMG):latest .
 endif
 
 ##@ Push Image
 
-.PHONY: push-image
-push-image: build-image ## Push Docker image
-	$(CTR_CMD) push $(IMG):latest
-
-.PHONY: push-image-ghcr
-push-image-ghcr: build-image-ghcr ## Push Docker image to GitHub Container Registry
-	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
-	$(CTR_CMD) push $(GHCR_IMG):latest
+.PHONY: push-controller-image
+push-controller-image: build-controller-image ## Push Docker image to Container Registry
+	$(CTR_CMD) push $(CONTROLLER_IMG):latest
 
 .PHONY: push-webhook-image
-push-webhook-image: build-webhook-image ## Push Docker image for the webhook to GitHub Container Registry
-	echo $(GITHUB_PAT) | $(CTR_CMD) login ghcr.io -u $(GITHUB_USERNAME) --password-stdin
-	$(CTR_CMD) push $(GHCR_WEBHOOK_IMG):latest
+push-webhook-image: build-webhook-image ## Push Docker image for the webhook to Container Registry
+	$(CTR_CMD) push $(WEBHOOK_IMG):latest
 
 ##@ Clean Up Resources
 
@@ -156,24 +129,21 @@ create-env-secret: ## Create env secret from .env file
 .PHONY: deploy-config
 deploy-config: deploy ## Deploy with modified config
 
-.PHONY: deploy-config-ghcr
-deploy-config-ghcr: deploy-ghcr ## Deploy with modified config using GitHub Container Registry
+.PHONY: deploy-config
+deploy-config: deploy ## Deploy with modified config using Container Registry
 
 .PHONY: deploy
-deploy: ## Deploy to Kubernetes
+deploy: create-env-secret ## Deploy to Kubernetes
+	set -x
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
-	file=$$(cat "deploy/climatik-operator/manifests/manager-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
-	echo "$$file"; \
-	echo "$$file" | kubectl apply -f -
-	file=$$(cat "deploy/climatik-operator/manifests/webhook-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
-	echo "$$file"; \
-	echo "$$file" | kubectl apply -f -
+	kubectl apply -f deploy/climatik-operator/manifests/manager-deployment.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/webhook-deployment.yaml
 
-.PHONY: deploy-ghcr
-deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
+.PHONY: deploy-sample
+deploy-sample: clean-up ## Deploy to Kubernetes using Container Registry
 	kubectl apply -f config/crd/bases
 	kustomize build config/default | kubectl apply -f -
 	kubectl apply -f deploy/climatik-operator/manifests/crd.yaml
@@ -184,12 +154,8 @@ deploy-ghcr: clean-up ## Deploy to Kubernetes using GitHub Container Registry
 	kubectl apply -f deploy/climatik-operator/manifests/deployment-stress.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/scaleobject.yaml
 	kubectl apply -f deploy/climatik-operator/manifests/sample-powercappingconfig.yaml
-	file=$$(cat "deploy/climatik-operator/manifests/manager-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
-	echo "$$file"; \
-	echo "$$file" | kubectl apply -f -
-	file=$$(cat "deploy/climatik-operator/manifests/webhook-deployment.yaml" | sed "s/\$${GITHUB_USERNAME}/$(GITHUB_USERNAME)/g" | sed "s/\$${GITHUB_REPO}/$(GITHUB_REPO)/g"); \
-	echo "$$file"; \
-	echo "$$file" | kubectl apply -f -
+	kubectl apply -f deploy/climatik-operator/manifests/manager-deployment.yaml
+	kubectl apply -f deploy/climatik-operator/manifests/webhook-deployment.yaml
 
 ##@ Start Cluster
 

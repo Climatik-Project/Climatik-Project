@@ -54,4 +54,4 @@ COPY --from=python-builder /app /app
 USER 65532:65532
 
 # Command to run the Go manager binary, the Python operator, and the Slack webhook server
-CMD ["/bin/sh", "-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect & kopf run /app/operator.py"]
+CMD ["/bin/sh", "-c", "/manager --metrics-bind-address=127.0.0.1:8080 --leader-elect"]
