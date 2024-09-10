@@ -99,3 +99,12 @@ In this paper, we study the effects of power-capping GPUs at a research supercom
 
 ## [The ugly truth behind ChatGPT: AI is guzzling resources at planet-eating rates | Mariana Mazzucato](https://www.theguardian.com/commentisfree/article/2024/may/30/ugly-truth-ai-chatgpt-guzzling-resources-environment)
 The tech industry, notably through its reliance on data centers, significantly contributes to global greenhouse emissions, surpassing even commercial flights in environmental impact. Technologies like large language models require substantial energy, with implications such as high water use for cooling. The expansion of data center operations by companies like Google and Meta not only increases energy consumption but also intensifies water scarcity issues in some regions. This escalation in resource use can lead to energy shortages, affecting essential services and infrastructure development. To combat these environmental challenges, governments should enforce regulations focusing on sustainable practices and human rights in mineral supply chains. Policymakers are urged to promote less harmful business models and adopt holistic strategies to limit the tech industry's impact on the climate, aiming to keep global temperature rise below 1.5C.
+
+## [Towards Improved Power Management in Cloud GPUs](https://homes.cs.washington.edu/~patelp1/papers/gpupower-cal23.pdf)
+—As modern server GPUs are increasingly power intensive, better power management mechanisms can significantly reduce the
+power consumption, capital costs, and carbon emissions in large cloud datacenters. This paper uses diverse datacenter workloads to
+study the power management capabilities of modern GPUs. We find that current GPU management mechanisms have limited
+compatibility and monitoring support under cloud virtualization. They have sub-optimal, imprecise, and non-intuitive implementations of
+Dynamic Voltage and Frequency Scaling (DVFS) and power capping. Consequently, efficient GPU power management is not widely
+deployed in clouds today. To address these limitations, we make actionable recommendations for GPU vendors and researchers.
+
