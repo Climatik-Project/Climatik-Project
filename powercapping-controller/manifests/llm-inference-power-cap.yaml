@@ -1,0 +1,17 @@
+apiVersion: climatik.io/v1alpha1
+kind: PowerCappingPolicy
+metadata:
+  name: llm-inference-power-cap
+  namespace: ai-services
+spec:
+  powerCapLimit: 1000  # Power cap limit in watts
+  selector:
+    matchLabels:
+      app: llm-inference
+      tier: gpu
+  cappingThreshold: 90  # Trigger capping when 90% of the limit is reached
+  customAlgorithms:
+    - name: dynamic-frequency-scaler
+      parameters:
+        scaling-factor: "0.8"
+        min-frequency: "300"
