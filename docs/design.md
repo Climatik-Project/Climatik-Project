@@ -42,20 +42,87 @@ flowchart TD
 ### 1. PowerCappingPolicy CR (Box A in yellow)
 
 - **Purpose**: Defines the power capping policy for a specific workload or service.
+- **Example CR**:
+  ```yaml
+  apiVersion: powercapping.example.com/v1alpha1
+  kind: PowerCappingPolicy
+  metadata:
+    name: llm-inference-power-cap
+    namespace: ai-services
+  spec:
+    powerCapLimit: 1000  # Power cap limit in watts
+    selector:
+      matchLabels:
+        app: llm-inference
+        tier: gpu
+    cappingThreshold: 90  # Trigger capping when 90% of the limit is reached
+    customAlgorithms:
+      - name: dynamic-frequency-scaler
+        parameters:
+          scaling-factor: "0.8"
+          min-frequency: "300"
+  status:
+    cappingActionRequired: false
+    lastUpdated: "2024-10-10T12:00:00Z"
+  ```
 - **Key Fields**:
-  - Power cap limit
-  - Selector for target applications
-  - Capping threshold
-  - Custom algorithm configuration
+  - powerCapLimit: The maximum power consumption allowed for the selected workload, in watts.
+  - selector: Kubernetes label selector to identify the pods/workloads this policy applies to.
+  - cappingThreshold: The percentage of the power cap at which capping actions should be triggered.
+  - customAlgorithms: Defines custom algorithms for determining frequency adjustments, including algorithm-specific parameters.
+    - status.cappingActionRequired: Indicates whether a capping action is currently needed.
+    - status.lastUpdated: Timestamp of the last status update.
 
 ### 2. NodeFrequencies CR (Box J in yellow)
 
 - **Purpose**: Manages the frequency settings for GPUs and CPUs on specific nodes.
+- **Example CR**:
+  ```yaml
+  apiVersion: compute.example.com/v1alpha1
+  kind: NodeFrequencies
+  metadata:
+    name: gpu-node-01-frequencies
+  spec:
+    nodeName: gpu-node-01
+    gpuFrequencies:
+      - gpuId: "GPU-1a2b3c4d"
+        targetFrequency: 1200
+      - gpuId: "GPU-5e6f7g8h"
+        targetFrequency: 1100
+    cpuFrequencies:
+      - cpuId: 0
+        targetFrequency: 2400
+      - cpuId: 1
+        targetFrequency: 2200
+  status:
+    gpuFrequencies:
+      - gpuId: "GPU-1a2b3c4d"
+        currentFrequency: 1200
+        targetFrequency: 1200
+        status: "Applied"
+      - gpuId: "GPU-5e6f7g8h"
+        currentFrequency: 1150
+        targetFrequency: 1100
+        status: "Pending"
+    cpuFrequencies:
+      - cpuId: 0
+        currentFrequency: 2400
+        targetFrequency: 2400
+        status: "Applied"
+      - cpuId: 1
+        currentFrequency: 2300
+        targetFrequency: 2200
+        status: "Pending"
+    lastUpdated: "2024-10-10T12:05:00Z"
+  ```
 - **Key Fields**:
-  - Node name
-  - Target frequencies for GPUs and CPUs
-  - Current frequencies and status of changes
-
+  - spec.nodeName: The name of the node these frequency settings apply to.
+  - spec.gpuFrequencies: List of target frequencies for each GPU on the node.
+  - spec.cpuFrequencies: List of target frequencies for each CPU core on the node.
+  - status.gpuFrequencies: Current status of GPU frequency changes, including current and target frequencies.
+  - status.cpuFrequencies: Current status of CPU frequency changes, including current and target frequencies.
+  - status.lastUpdated: Timestamp of the last status update.
+    
 ## Controllers
 
 ### 1. Power Usage Monitor (Controller 1, Box B in dark blue)
