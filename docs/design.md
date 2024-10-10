@@ -22,14 +22,12 @@ flowchart TD
     G -- No --> E
     H -- Update --> J{{"NodeFrequencies CR"}}
     J --> K(["Controller 3: Frequency Tuner DaemonSet"])
-    K --> M{"GPU/CPU Listed?"} & n2["Untitled Node"]
+    K --> M{"GPU/CPU Listed?"}
     M -- Yes --> N["Tune Frequency"]
     M -- No --> K
     N -- Update Status --> J
     P["DCGM Exporter"] --> Q[("Prometheus")]
     Q --> B
-    C --> n1["Untitled Node"]
-    K --> n3["Untitled Node"]
      A:::crStyle
      B:::controllerStyle
      E:::controllerStyle
