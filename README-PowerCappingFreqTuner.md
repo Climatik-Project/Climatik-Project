@@ -45,9 +45,9 @@ Key benefits of the PowerCappingFreqTuner project include:
 
 The Climatik Project implements a dynamic power capping service using Kubernetes. The architecture consists of several key components:
 
-1. Power Usage Monitor (powercapping-controller): A custom Kubernetes controller that monitors power usage and determines if capping is needed. It reads from and updates the PowerCappingPolicy CR, and receives data from Prometheus (fed by DCGM Exporter).
-2. Action Recommender (freqtuning-recommender): Recommends scaling actions based on the power capping policy. It reads from the PowerCappingPolicy CR and creates/updates the NodeFrequencies CR with recommended actions.
-3. Frequency Tuner DaemonSet (freqtuner): Applies frequency changes on individual nodes. It reads from the NodeFrequencies CR and updates its status after applying changes.
+1. Power Usage Monitor (`powercapping-controller`): A custom Kubernetes controller that monitors power usage and determines if capping is needed. It reads from and updates the PowerCappingPolicy CR, and receives data from Prometheus (fed by DCGM Exporter).
+2. Action Recommender (`freqtuning-recommender`): Recommends scaling actions based on the power capping policy. It reads from the PowerCappingPolicy CR and creates/updates the NodeFrequencies CR with recommended actions.
+3. Frequency Tuner DaemonSet (`freqtuner`): Applies frequency changes on individual nodes. It reads from the NodeFrequencies CR and updates its status after applying changes.
 
 The system uses Custom Resources (CRs) to define power capping policies and manage node frequencies, providing a flexible and scalable approach to power management in Kubernetes clusters:
 
