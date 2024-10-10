@@ -6,7 +6,7 @@ spec:
   powerCapLimit: 1000  # Power cap limit in watts
   selector:
     matchLabels:
-      app: vllm
+      app: vllm-llama-7b
   cappingThreshold: 90  # Trigger capping when 90% of the limit is reached
   customAlgorithms:
     - name: dynamic-frequency-scaler

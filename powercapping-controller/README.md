@@ -26,23 +26,28 @@ The system uses Custom Resources to define power capping policies and trigger ac
 1. Clone the repository:
    ```sh
    git clone https://github.com/climatik-project/climatik-project.git
-   cd powercapping-controller
+   cd climatik-project/powercapping-controller
    ```
 
-2. Build and push the Docker image:
+2. Set the image name and tag:
    ```sh
-   make docker-build docker-push IMG=<your-registry>/powercapping-controller:tag
+   export IMG=<your-registry>/powercapping-controller:tag
    ```
 
-3. Install the Custom Resource Definitions (CRDs):
+3. Build and push the Docker image:
+   ```sh
+   make docker-build docker-push
+   ```
+
+4. Install the Custom Resource Definitions (CRDs):
    ```sh
    make install
    ```
 
-4. Deploy the controller with custom environment variables:
+5. Deploy the controller with custom environment variables:
    ```sh
-   kubectl create namespace powercapping-system
-   kubectl create configmap powercapping-config -n powercapping-system \
+   kubectl create namespace climatik
+   kubectl create configmap powercapping-config -n climatik \
      --from-literal=PROMETHEUS_URL=http://prometheus-server.monitoring:9090 \
      --from-literal=MONITOR_INTERVAL=1m
    
@@ -51,9 +56,9 @@ The system uses Custom Resources to define power capping policies and trigger ac
 
    This will create a ConfigMap with the PROMETHEUS_URL and MONITOR_INTERVAL environment variables, and deploy the controller using these settings.
 
-5. Verify the deployment:
+6. Verify the deployment:
    ```sh
-   kubectl get pods -n powercapping-system
+   kubectl get pods -n climatik
    ```
 
 ### Using the PowerCapping Controller
