@@ -23,10 +23,12 @@ The system uses Custom Resources to define power capping policies and trigger ac
 
 ### Deploying the Controller
 
-1. Clone the repository:
+1. Clone the repository and checkout the `kubeconNA` branch:
    ```sh
    git clone https://github.com/climatik-project/climatik-project.git
-   cd climatik-project/powercapping-controller
+   cd climatik-project
+   git checkout kubeconNA
+   cd powercapping-controller
    ```
 
 2. Set the image name and tag:
