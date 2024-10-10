@@ -1,0 +1,23 @@
+# permissions for end users to view powercappingpolicies.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: powercapping-controller
+    app.kubernetes.io/managed-by: kustomize
+  name: powercappingpolicy-viewer-role
+rules:
+- apiGroups:
+  - climatik.climatik.io
+  resources:
+  - powercappingpolicies
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - climatik.climatik.io
+  resources:
+  - powercappingpolicies/status
+  verbs:
+  - get

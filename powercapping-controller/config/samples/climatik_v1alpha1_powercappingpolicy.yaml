@@ -1,0 +1,9 @@
+apiVersion: climatik.climatik.io/v1alpha1
+kind: PowerCappingPolicy
+metadata:
+  labels:
+    app.kubernetes.io/name: powercapping-controller
+    app.kubernetes.io/managed-by: kustomize
+  name: powercappingpolicy-sample
+spec:
+  # TODO(user): Add fields here
