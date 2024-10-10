@@ -1,0 +1,86 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: huggingface-cache-pv-rmw
+spec:
+  capacity:
+    storage: 10Gi
+  accessModes:
+    - ReadWriteMany
+  storageClassName: manual
+  hostPath:
+    path: /data/huggingface-cache
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: huggingface-cache-pvc-rmw
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: manual
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-llama-7b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-llama-7b
+  template:
+    metadata:
+      labels:
+        app: vllm-llama-7b
+    spec:
+      containers:
+      - name: vllm-container-llama-7b
+        image: vllm/vllm-openai:latest
+        command: ["/bin/sh", "-c"]
+        args: ["python3 -m vllm.entrypoints.openai.api_server --model ${MODEL_NAME} --tensor-parallel-size 1"]
+        ports:
+        - containerPort: 8000
+          name: llama-7b
+        env:
+        - name: HUGGING_FACE_HUB_TOKEN
+          valueFrom:
+            secretKeyRef:
+              key: HF_TOKEN
+              name: huggingface-secret
+        - name: MODEL_NAME
+          value: "meta-llama/Llama-2-7b-chat-hf"
+        volumeMounts:
+        - name: cache-volume
+          mountPath: /root/.cache/huggingface
+        resources:
+          limits:
+            nvidia.com/gpu: 1
+          requests:
+            nvidia.com/gpu: 1
+            cpu: 500m
+            memory: 512Mi
+      volumes:
+      - name: cache-volume
+        persistentVolumeClaim:
+          claimName: huggingface-cache-pvc-rmw
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: vllm-llama-7b
+    model_family: meta-llama
+    model_name: Llama-2-7B-chat-hf
+  name: vllm-llama-7b
+  namespace: default
+spec:
+  ports:
+  - port: 8000
+    targetPort: llama-7b
+    name: llama-7b
+  selector:
+    app: vllm-llama-7b

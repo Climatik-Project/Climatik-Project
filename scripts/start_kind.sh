@@ -13,6 +13,8 @@ nodes:
   extraMounts:
     - hostPath: /dev/null
       containerPath: /var/run/nvidia-container-devices/all
+    - hostPath: /data/huggingface-cache
+      containerPath: /data/huggingface-cache
 EOF
 echo "> Deploying cert manager"
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.15.3/cert-manager.yaml

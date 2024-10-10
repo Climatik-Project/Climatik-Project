@@ -5,8 +5,8 @@
 domain: climatik.io
 layout:
 - go.kubebuilder.io/v4
-projectName: powercapping-controller
-repo: github.com/Climatik-Project/Climatik-Project/powercapping-controller
+projectName: Climatik-Project
+repo: github.com/Climatik-Project/Climatik-Project
 resources:
 - api:
     crdVersion: v1

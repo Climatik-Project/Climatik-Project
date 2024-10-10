@@ -4,9 +4,9 @@ The PowerCapping Controller is a Kubernetes-native solution designed to dynamica
 
 ## Description
 
-This controller consists of three main components:
+This controller mainly implements:
 
-1. Power Usage Monitor: Monitors power usage and determines if capping is needed.
+1. Power Usage Monitor: Periodically monitors power usage and determines if capping is needed.
 2. Trigger Action: Update the PowerCappingPolicy status with true if the power usage is approaching the limit.
 
 The system uses Custom Resources to define power capping policies and trigger actions in Kubernetes clusters.
@@ -25,7 +25,7 @@ The system uses Custom Resources to define power capping policies and trigger ac
 
 1. Clone the repository:
    ```sh
-   git clone https://github.com/your-org/powercapping-controller.git
+   git clone https://github.com/climatik-project/climatik-project.git
    cd powercapping-controller
    ```
 
