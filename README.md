@@ -56,17 +56,6 @@ The system uses Custom Resources (CRs) to define power capping policies and mana
 
 This architecture allows for dynamic power management, workload-specific policies, flexible algorithm integration, and seamless integration with Kubernetes environments, making it particularly useful for GPU-intensive workloads like LLM inference and training.
 
-For a detailed description of the system architecture, including component interactions and workflow, please refer to our [design document](docs/design.md). This document provides:
-
-- A system architecture diagram
-- Detailed descriptions of Custom Resources (CRs)
-- Explanations of the main controllers and their functions
-- The overall system workflow
-- Key benefits of the architecture
-
-The design document offers a comprehensive overview of how the PowerCapping Controller works in conjunction with other components to achieve efficient power management for LLM inference workloads.
-
-[... rest of the README.md content ...]
 
 ## 4. Installation
 
@@ -78,7 +67,15 @@ The design document offers a comprehensive overview of how the PowerCapping Cont
 
 ## 6. Documentation
 
-[... documentation section ...]
+For a detailed description of the system architecture, including component interactions and workflow, please refer to our [design document](docs/design.md). This document provides:
+
+- A system architecture diagram
+- Detailed descriptions of Custom Resources (CRs)
+- Explanations of the main controllers and their functions
+- The overall system workflow
+- Key benefits of the architecture
+
+The design document offers a comprehensive overview of how the PowerCapping Controller works in conjunction with other components to achieve efficient power management for LLM inference workloads.
 
 ## 7. Contributing
 
