@@ -40,6 +40,10 @@ func NewSlackAlertManager(webhookURL string) (*SlackAlertManager, error) {
 }
 
 func (s *SlackAlertManager) CreateAlert(podName string, powerCapValue int, devices map[string]string, config *powercappingv1alpha1.PowerCappingConfig) error {
+	if config == nil {
+		return fmt.Errorf("config parameter cannot be nil")
+	}
+
 	currentPower := float64(powerCapValue) // You might want to get the actual current power from somewhere
 
 	alert := SlackAlert{
